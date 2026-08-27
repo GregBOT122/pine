@@ -135,3 +135,41 @@ précisément ce que la règle 11 existe pour révéler avant le test plutôt qu
    pre-inscription H_TREND et cette annexe reposent sur des dates de fichier,
    pas sur des commits. C'est plus faible que H_L2 et H1, dont l'engagement est
    horodate par un commit pousse.
+
+---
+
+## 6. Le dossier est devenu un dépôt (2026-08-27)
+
+`pine\` vivait sous OneDrive et n'était pas versionné : la pré-inscription et
+cette annexe reposaient sur des **dates de fichier**, pas sur des commits.
+
+**Nouvel emplacement : `C:\Users\grego\dev\Daytrading\pine`**, dépôt git, branche
+`main`. Un dépôt ne va jamais sous OneDrive — écritures atomiques de git en
+échec, fichiers « en ligne uniquement » absents du disque, et deux systèmes de
+version qui se marchent dessus. Vérifié avant de déplacer : 0 fichier hors ligne
+sur 26.
+
+### L'empreinte, vérifiée trois fois
+
+    avant le déplacement    1f5318dc...e32c2c   identique
+    après le déplacement    1f5318dc...e32c2c   identique
+    dans un CLONE FRAIS     1f5318dc...e32c2c   reproduite
+
+Le troisième contrôle n'est pas du zèle. **Git convertit LF -> CRLF à la sortie
+par défaut sous Windows** : sans précaution, un clone aurait rendu d'autres
+octets, l'empreinte ne se serait plus recalculée, et le test se serait déclaré
+nul **par sa propre règle**, sans que personne ait touché une ligne de code.
+Les avertissements « LF will be replaced by CRLF » à l'ajout portaient
+précisément sur les deux fichiers empreintés.
+
+`.gitattributes` pose donc `* -text` : aucune conversion, les octets sortent
+comme ils sont entrés.
+
+### Le chemin dans la pré-inscription est périmé, et c'est voulu
+
+La commande de vérification du §Empreinte de
+`PREINSCRIPTION_TREND_H4_2026-08-26.md` commence par
+`cd /c/Users/grego/OneDrive/Daytrading/pine`. **Ce document n'est pas modifié** :
+c'est l'engagement gelé, et le corriger après coup serait précisément ce qu'une
+pré-inscription interdit. Lire `dev\Daytrading\pine` à la place — le reste de la
+commande est inchangé et rend bien `1f5318dc...e32c2c`.

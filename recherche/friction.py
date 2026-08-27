@@ -1,5 +1,6 @@
 import sys, numpy as np, pandas as pd, hashlib, glob
-sys.path.insert(0,r'C:/Users/grego/AppData/Local/Temp/claude/C--Users-grego-OneDrive-Daytrading/14097890-a20f-4bd4-aa6c-ea576741d02f/scratchpad')
+# NOTE 2026-08-27 : le sys.path.insert pointait sur le scratchpad d'une session
+# de 2026-08-26, qui n'existe plus. Ligne retiree — si un import manque, c'est ici.
 import null_shift as NS
 
 # --- friction a l'equilibre : quel aller-retour annule l'edge NET de +0.16 R ?
@@ -32,6 +33,6 @@ for target,months in ((1200,18),(1200,24),(1200,36)):
 
 # --- empreinte de la configuration figee
 h=hashlib.sha256()
-for f in sorted(glob.glob(r'C:/Users/grego/OneDrive/Daytrading/pine/recherche/*.py'))+[r'C:/Users/grego/OneDrive/Daytrading/pine/trend_donchian_h4.pine']:
+for f in sorted(glob.glob(r'C:/Users/grego/dev/Daytrading/pine/recherche/*.py'))+[r'C:/Users/grego/dev/Daytrading/pine/trend_donchian_h4.pine']:
     h.update(open(f,'rb').read())
 print(f'\nSHA256 de la configuration figee (6 scripts + le .pine) : {h.hexdigest()}')
