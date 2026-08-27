@@ -1,0 +1,710 @@
+{
+  "edge_net_r": 0.1604,
+  "frais_crypto_rt_pct": 0.2,
+  "genere_utc": "2026-08-27 16:36:36",
+  "manquants": {},
+  "resolus": {
+    "AAPL": "Apple",
+    "ADAUSDT": "ADAUSDT",
+    "AMZN": "Amazon",
+    "ATOMUSDT": "ATOMUSDT",
+    "AUDJPY": "AUDJPY",
+    "AUDUSD": "AUDUSD",
+    "AVAXUSDT": "AVAXUSDT",
+    "BNBUSDT": "BNBUSDT",
+    "BTCUSDT": "BTCUSDT",
+    "DE40": "GER40",
+    "DOGEUSDT": "DOGEUSDT",
+    "DOTUSDT": "DOTUSDT",
+    "ETHUSDT": "ETHUSDT",
+    "EURGBP": "EURGBP",
+    "EURJPY": "EURJPY",
+    "EURUSD": "EURUSD",
+    "FRA40": "FRA40",
+    "GBPJPY": "GBPJPY",
+    "GBPUSD": "GBPUSD",
+    "GOOGL": "Alphabet-A",
+    "JP225": "JPN225",
+    "LINKUSDT": "LINKUSDT",
+    "LTCUSDT": "LTCUSDT",
+    "META": "Meta",
+    "MSFT": "Microsoft",
+    "NATGAS": "XNGUSD",
+    "NFLX": "Netflix",
+    "NVDA": "NVIDIA",
+    "NZDUSD": "NZDUSD",
+    "SOLUSDT": "SOLUSDT",
+    "TSLA": "Tesla",
+    "UK100": "UK100",
+    "US30": "US30",
+    "US500": "US500",
+    "USDCAD": "USDCAD",
+    "USDCHF": "USDCHF",
+    "USDJPY": "USDJPY",
+    "USTEC": "NAS100",
+    "WTI": "XTIUSD",
+    "XAGUSD": "XAGUSD",
+    "XAUUSD": "XAUUSD",
+    "XRPUSDT": "XRPUSDT"
+  },
+  "sha256_univers": "b09836abe7c035df4467f53c79297a54ceafee7969e1691c7dfb6b729b8ba962",
+  "specs": {
+    "AAPL": {
+      "atr_pct_h4": 1.424559641838251,
+      "digits": 2,
+      "h1_barres": 9645,
+      "h1_depuis": "2021-03-08",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 12,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "ADAUSDT": {
+      "atr_pct_h4": 2.3641746422523164,
+      "atr_pct_h4_recent": 2.045574530403331,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "AMZN": {
+      "atr_pct_h4": 1.8159060097615425,
+      "digits": 2,
+      "h1_barres": 8956,
+      "h1_depuis": "2021-03-15",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 12,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "ATOMUSDT": {
+      "atr_pct_h4": 2.2166519097376023,
+      "atr_pct_h4_recent": 1.5486851561080563,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "AUDJPY": {
+      "atr_pct_h4": 0.48533905228454743,
+      "digits": 3,
+      "h1_barres": 48602,
+      "h1_depuis": "1998-05-07",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 0.8701000000000001,
+      "spread_points_instantane": 10,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "AUDUSD": {
+      "atr_pct_h4": 0.4505696780220488,
+      "digits": 5,
+      "h1_barres": 48704,
+      "h1_depuis": "1997-09-24",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "AVAXUSDT": {
+      "atr_pct_h4": 2.5799118152539995,
+      "atr_pct_h4_recent": 1.6981254713063678,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "BNBUSDT": {
+      "atr_pct_h4": 1.470883669649955,
+      "atr_pct_h4_recent": 0.8380696400248876,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "BTCUSDT": {
+      "atr_pct_h4": 1.285388520434197,
+      "atr_pct_h4_recent": 0.8938227913643654,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "DE40": {
+      "atr_pct_h4": 0.5721824350016658,
+      "digits": 2,
+      "h1_barres": 31840,
+      "h1_depuis": "2011-09-29",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.0161,
+      "spread_points_instantane": 120,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "DOGEUSDT": {
+      "atr_pct_h4": 2.474084484586706,
+      "atr_pct_h4_recent": 1.3083202270765746,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "DOTUSDT": {
+      "atr_pct_h4": 2.3334214919368956,
+      "atr_pct_h4_recent": 1.5734832266718592,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "ETHUSDT": {
+      "atr_pct_h4": 1.808590389560033,
+      "atr_pct_h4_recent": 1.2513881526979642,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "EURGBP": {
+      "atr_pct_h4": 0.2652078449108137,
+      "digits": 5,
+      "h1_barres": 48706,
+      "h1_depuis": "1997-09-30",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.8844,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "EURJPY": {
+      "atr_pct_h4": 0.34266035120046057,
+      "digits": 3,
+      "h1_barres": 46881,
+      "h1_depuis": "2004-09-16",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 0.8701000000000001,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "EURUSD": {
+      "atr_pct_h4": 0.317601207910594,
+      "digits": 5,
+      "h1_barres": 48714,
+      "h1_depuis": "1997-10-10",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "FRA40": {
+      "atr_pct_h4": 0.6852112493575873,
+      "digits": 2,
+      "h1_barres": 32590,
+      "h1_depuis": "2012-08-06",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.0161,
+      "spread_points_instantane": 70,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "GBPJPY": {
+      "atr_pct_h4": 0.4159570621611479,
+      "digits": 3,
+      "h1_barres": 48655,
+      "h1_depuis": "1997-07-17",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 0.8701000000000001,
+      "spread_points_instantane": 14,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "GBPUSD": {
+      "atr_pct_h4": 0.35889554721579486,
+      "digits": 5,
+      "h1_barres": 48700,
+      "h1_depuis": "1997-10-07",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "GOOGL": {
+      "atr_pct_h4": 1.6360538339771709,
+      "digits": 2,
+      "h1_barres": 9353,
+      "h1_depuis": "2021-04-15",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 14,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "JP225": {
+      "atr_pct_h4": 0.695174663437897,
+      "digits": 2,
+      "h1_barres": 42077,
+      "h1_depuis": "1998-09-06",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.0009,
+      "spread_points_instantane": 600,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "LINKUSDT": {
+      "atr_pct_h4": 2.4569101873631816,
+      "atr_pct_h4_recent": 1.459582917741917,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "LTCUSDT": {
+      "atr_pct_h4": 1.8764662909667416,
+      "atr_pct_h4_recent": 1.2213788132189347,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "META": {
+      "atr_pct_h4": 1.9507161095683252,
+      "digits": 2,
+      "h1_barres": 9665,
+      "h1_depuis": "2021-02-25",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 39,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "MSFT": {
+      "atr_pct_h4": 1.3666882504624163,
+      "digits": 2,
+      "h1_barres": 9716,
+      "h1_depuis": "2021-02-19",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 17,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "NATGAS": {
+      "atr_pct_h4": 2.303488403837197,
+      "digits": 4,
+      "h1_barres": 34393,
+      "h1_depuis": "2009-11-11",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.0001,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 70,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "NFLX": {
+      "atr_pct_h4": 1.8734808047826719,
+      "digits": 2,
+      "h1_barres": 9655,
+      "h1_depuis": "2021-03-03",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 7,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "NVDA": {
+      "atr_pct_h4": 3.480146828091716,
+      "digits": 2,
+      "h1_barres": 13670,
+      "h1_depuis": "1999-01-25",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 8,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "NZDUSD": {
+      "atr_pct_h4": 0.39680046300939475,
+      "digits": 5,
+      "h1_barres": 45130,
+      "h1_depuis": "2010-07-02",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "SOLUSDT": {
+      "atr_pct_h4": 2.4160746772919013,
+      "atr_pct_h4_recent": 1.211073082379762,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    },
+    "TSLA": {
+      "atr_pct_h4": 2.964199875163514,
+      "digits": 2,
+      "h1_barres": 9602,
+      "h1_depuis": "2021-03-08",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 17,
+      "volume_min": 0.1,
+      "volume_step": 0.1
+    },
+    "UK100": {
+      "atr_pct_h4": 0.5007071615024279,
+      "digits": 2,
+      "h1_barres": 38659,
+      "h1_depuis": "2011-09-28",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.018799999999999997,
+      "spread_points_instantane": 130,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "US30": {
+      "atr_pct_h4": 0.49550790597374156,
+      "digits": 2,
+      "h1_barres": 43296,
+      "h1_depuis": "2011-08-08",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 120,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "US500": {
+      "atr_pct_h4": 0.5399260346098675,
+      "digits": 2,
+      "h1_barres": 43296,
+      "h1_depuis": "2011-08-05",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 30,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "USDCAD": {
+      "atr_pct_h4": 0.23984616059864022,
+      "digits": 5,
+      "h1_barres": 45131,
+      "h1_depuis": "2010-07-02",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.0,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "USDCHF": {
+      "atr_pct_h4": 0.2833806742395932,
+      "digits": 5,
+      "h1_barres": 45127,
+      "h1_depuis": "2010-07-02",
+      "h1_jusqua": "2026-08-27",
+      "point": 1e-05,
+      "point_value_mesuree": 1.7245,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "USDJPY": {
+      "atr_pct_h4": 0.32070008925420646,
+      "digits": 3,
+      "h1_barres": 45132,
+      "h1_depuis": "2010-07-02",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 0.8701000000000001,
+      "spread_points_instantane": 9,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "USTEC": {
+      "atr_pct_h4": 0.7412809006157892,
+      "digits": 2,
+      "h1_barres": 43301,
+      "h1_depuis": "2011-05-25",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 0.013900000000000001,
+      "spread_points_instantane": 80,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "WTI": {
+      "atr_pct_h4": 1.366366837490353,
+      "digits": 3,
+      "h1_barres": 34389,
+      "h1_depuis": "2010-07-07",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 30,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "XAGUSD": {
+      "atr_pct_h4": 1.1430293977053472,
+      "digits": 3,
+      "h1_barres": 43371,
+      "h1_depuis": "2010-06-15",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.001,
+      "point_value_mesuree": 6.9287,
+      "spread_points_instantane": 30,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "XAUUSD": {
+      "atr_pct_h4": 0.5722337144502001,
+      "digits": 2,
+      "h1_barres": 43323,
+      "h1_depuis": "2010-06-15",
+      "h1_jusqua": "2026-08-27",
+      "point": 0.01,
+      "point_value_mesuree": 1.3857,
+      "spread_points_instantane": 17,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "XRPUSDT": {
+      "atr_pct_h4": 1.887211246504394,
+      "atr_pct_h4_recent": 1.1033282933022348,
+      "h1_barres": 26280,
+      "h1_depuis": "2023-08-28",
+      "h1_jusqua": "2026-08-27"
+    }
+  },
+  "spreads": {
+    "AAPL": {
+      "med": 0.031801,
+      "n": 1,
+      "p90": 0.031801
+    },
+    "ADAUSDT": {
+      "med": 0.046371,
+      "n": 1,
+      "p90": 0.046371
+    },
+    "AMZN": {
+      "med": 0.04292,
+      "n": 1,
+      "p90": 0.04292
+    },
+    "ATOMUSDT": {
+      "med": 0.065125,
+      "n": 1,
+      "p90": 0.065125
+    },
+    "AUDJPY": {
+      "med": 0.008726,
+      "n": 1,
+      "p90": 0.008726
+    },
+    "AUDUSD": {
+      "med": 0.012507,
+      "n": 1,
+      "p90": 0.012507
+    },
+    "AVAXUSDT": {
+      "med": 0.013288,
+      "n": 1,
+      "p90": 0.013288
+    },
+    "BNBUSDT": {
+      "med": 0.001406,
+      "n": 1,
+      "p90": 0.001406
+    },
+    "BTCUSDT": {
+      "med": 1.2e-05,
+      "n": 1,
+      "p90": 1.2e-05
+    },
+    "DE40": {
+      "med": 0.004549,
+      "n": 1,
+      "p90": 0.004549
+    },
+    "DOGEUSDT": {
+      "med": 0.011228,
+      "n": 1,
+      "p90": 0.011228
+    },
+    "DOTUSDT": {
+      "med": 0.112803,
+      "n": 1,
+      "p90": 0.112803
+    },
+    "ETHUSDT": {
+      "med": 0.000397,
+      "n": 1,
+      "p90": 0.000397
+    },
+    "EURGBP": {
+      "med": 0.010502,
+      "n": 1,
+      "p90": 0.010502
+    },
+    "EURJPY": {
+      "med": 0.004849,
+      "n": 1,
+      "p90": 0.004849
+    },
+    "EURUSD": {
+      "med": 0.007723,
+      "n": 1,
+      "p90": 0.007723
+    },
+    "FRA40": {
+      "med": 0.014418,
+      "n": 1,
+      "p90": 0.014418
+    },
+    "GBPJPY": {
+      "med": 0.006002,
+      "n": 1,
+      "p90": 0.006002
+    },
+    "GBPUSD": {
+      "med": 0.006618,
+      "n": 1,
+      "p90": 0.006618
+    },
+    "GOOGL": {
+      "med": 0.038068,
+      "n": 1,
+      "p90": 0.038068
+    },
+    "JP225": {
+      "med": 0.009067,
+      "n": 1,
+      "p90": 0.009067
+    },
+    "LINKUSDT": {
+      "med": 0.008429,
+      "n": 1,
+      "p90": 0.008429
+    },
+    "LTCUSDT": {
+      "med": 0.019855,
+      "n": 1,
+      "p90": 0.019855
+    },
+    "META": {
+      "med": 0.050757,
+      "n": 1,
+      "p90": 0.050757
+    },
+    "MSFT": {
+      "med": 0.02981,
+      "n": 1,
+      "p90": 0.02981
+    },
+    "NATGAS": {
+      "med": 0.240715,
+      "n": 1,
+      "p90": 0.240715
+    },
+    "NFLX": {
+      "med": 0.10049,
+      "n": 1,
+      "p90": 0.10049
+    },
+    "NVDA": {
+      "med": 0.034887,
+      "n": 1,
+      "p90": 0.034887
+    },
+    "NZDUSD": {
+      "med": 0.015123,
+      "n": 1,
+      "p90": 0.015123
+    },
+    "SOLUSDT": {
+      "med": 0.009254,
+      "n": 1,
+      "p90": 0.009254
+    },
+    "TSLA": {
+      "med": 0.062318,
+      "n": 1,
+      "p90": 0.062318
+    },
+    "UK100": {
+      "med": 0.012055,
+      "n": 1,
+      "p90": 0.012055
+    },
+    "US30": {
+      "med": 0.002237,
+      "n": 1,
+      "p90": 0.002237
+    },
+    "US500": {
+      "med": 0.00388,
+      "n": 1,
+      "p90": 0.00388
+    },
+    "USDCAD": {
+      "med": 0.006495,
+      "n": 1,
+      "p90": 0.006495
+    },
+    "USDCHF": {
+      "med": 0.011199,
+      "n": 1,
+      "p90": 0.011199
+    },
+    "USDJPY": {
+      "med": 0.005651,
+      "n": 1,
+      "p90": 0.005651
+    },
+    "USTEC": {
+      "med": 0.002707,
+      "n": 1,
+      "p90": 0.002707
+    },
+    "WTI": {
+      "med": 0.023993,
+      "n": 1,
+      "p90": 0.023993
+    },
+    "XAGUSD": {
+      "med": 0.037539,
+      "n": 1,
+      "p90": 0.037539
+    },
+    "XAUUSD": {
+      "med": 0.003038,
+      "n": 1,
+      "p90": 0.003038
+    },
+    "XRPUSDT": {
+      "med": 0.00683,
+      "n": 1,
+      "p90": 0.00683
+    }
+  },
+  "stop_atr": 1.5
+}

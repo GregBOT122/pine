@@ -1,0 +1,16 @@
+# AUCUNE conversion de fin de ligne. Ce depot est empreinte.
+#
+# La pre-inscription H_TREND fige `trend_donchian_h4.pine` et
+# `recherche/null_shift.py` par le SHA256 de la concatenation de leurs deux
+# SHA256 :
+#     1f5318dc5bbaad7c93315dde947fb17a4fd58709134786e475b7cd72d4e32c2c
+# et pose que « si elle ne se recalcule pas a l'identique a la lecture, le test
+# est nul ».
+#
+# Or git convertit LF -> CRLF a la sortie par defaut sous Windows. Un clone
+# rendrait donc des octets differents, l'empreinte ne se recalculerait plus, et
+# le test serait declare nul par sa propre regle — sans que personne ait touche
+# une ligne de code.
+#
+# `-text` desactive toute conversion : les octets sortent comme ils sont entres.
+* -text

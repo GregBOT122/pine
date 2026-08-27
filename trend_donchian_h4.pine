@@ -1,0 +1,181 @@
+//@version=6
+// =============================================================================
+//  TREND-FOLLOWING DONCHIAN H4  --  parametres mesures, pas devines
+// -----------------------------------------------------------------------------
+//  Design issu d'un pre-screen sur 633 Mo d'OHLC reel deja collecte
+//  (17 symboles, 2012-2026, 3 328 trades). Mesure AVANT d'ecrire ce script :
+//
+//   * Timeframe : H1 expR ~0.00 (mort, friction) | H4 +0.14 | D1 = mirage
+//                 (D1 : IS +0.40 -> OOS -0.05, n trop petit)
+//   * Sens      : LONG  expR +0.388  IC95 [+0.279,+0.504]  PF 1.66
+//                 SHORT expR -0.213  IC95 [-0.295,-0.128]  PF 0.69  <-- perd
+//   * Params    : les 18 combos (N, stop, trail) testes sont positifs en IS ET
+//                 en OOS. Surface plate = pas de sur-ajustement. Meilleure
+//                 stabilite N=40 / stop 1.5 ATR / trail 3.5 ATR (IS 0.149,
+//                 OOS 0.150 en pool long+short).
+//   * Holdout   : long-only, IS <2022 +0.364 R (n=883) / OOS >=2022 +0.407 R
+//                 (n=1083). Aucune degradation.
+//
+//  LIMITE HONNETE : 2012-2026 long-only sur tech / indices / crypto, c'est UN
+//  SEUL grand marche haussier. Une part de l'edge est du beta. Le fait que les
+//  shorts perdent est exactement la meme information vue a l'envers.
+// =============================================================================
+
+strategy("Trend Donchian H4 [mesure]", overlay = true,
+     initial_capital    = 50000,
+     currency           = currency.USD,
+     default_qty_type   = strategy.fixed,
+     default_qty_value  = 1,
+     pyramiding         = 0,
+     commission_type    = strategy.commission.percent,
+     commission_value   = 0.0075,
+     slippage           = 1,
+     calc_on_every_tick = false,
+     margin_long        = 20,
+     margin_short       = 20)
+
+// ----------------------------------------------------------------- ENTREES ---
+grpS = "Signal"
+donchLen = input.int(40,     "Donchian : cassure sur N bougies", minval = 5,  maxval = 200, group = grpS)
+emaLen   = input.int(200,    "EMA de regime",                    minval = 20, maxval = 400, group = grpS)
+useLong  = input.bool(true,  "Longs",                                                       group = grpS)
+useShort = input.bool(false, "Shorts (MESURE PERDANT : -0.21 R)",                           group = grpS)
+
+grpR = "Risque"
+riskPct   = input.float(1.0, "Risque par trade (% equity)",  minval = 0.05, maxval = 5.0, step = 0.05, group = grpR)
+atrLen    = input.int(14,    "ATR",                          minval = 5,   maxval = 50,  group = grpR)
+stopMult  = input.float(1.5, "Stop initial (x ATR)",         minval = 0.5, maxval = 5.0, step = 0.1, group = grpR)
+trailMult = input.float(3.5, "Trail Chandelier (x ATR)",     minval = 1.0, maxval = 8.0, step = 0.1, group = grpR)
+maxBars   = input.int(400,   "Sortie forcee apres N bougies", minval = 20, maxval = 2000, group = grpR)
+
+grpF = "Filtres"
+minAtrPct = input.float(0.0,  "ATR minimum (% du prix), 0 = off", minval = 0.0, step = 0.05, group = grpF)
+warnTf    = input.bool(true,  "Avertir si le graphe n'est pas en H4",                        group = grpF)
+
+// ------------------------------------------------------------- INDICATEURS ---
+atrVal  = ta.atr(atrLen)
+emaVal  = ta.ema(close, emaLen)
+upBreak = ta.highest(high, donchLen)[1]     // plus haut des N bougies PRECEDENTES
+dnBreak = ta.lowest(low,  donchLen)[1]
+
+atrOk  = minAtrPct <= 0.0 or (atrVal / close * 100.0) >= minAtrPct
+warmed = bar_index > math.max(donchLen, emaLen) + atrLen
+
+longSig  = warmed and atrOk and useLong  and close > upBreak and close > emaVal
+shortSig = warmed and atrOk and useShort and close < dnBreak and close < emaVal
+
+// -------------------------------------------------------------------- ETAT ---
+var float stopLevel  = na    // stop courant, ne recule jamais
+var float peakPx     = na    // extreme favorable depuis l'entree
+var float stopDistIn = na    // 1 R en prix, fige a l'entree
+var int   barsIn     = 0
+
+flat = strategy.position_size == 0
+
+// ------------------------------------------------------------------ SIZING ---
+// qty telle que  distance_au_stop * qty * pointvalue = riskPct % de l'equity
+plannedD = stopMult * atrVal
+riskUsd  = strategy.equity * riskPct / 100.0
+qty      = plannedD > 0 and syminfo.pointvalue > 0 ? riskUsd / (plannedD * syminfo.pointvalue) : 0.0
+
+// ------------------------------------------------------------------ ORDRES ---
+if flat and qty > 0 and longSig
+    stopDistIn := plannedD
+    strategy.entry("L", strategy.long, qty = qty)
+
+if flat and qty > 0 and shortSig
+    stopDistIn := plannedD
+    strategy.entry("S", strategy.short, qty = qty)
+
+if strategy.position_size > 0
+    barsIn    := barsIn + 1
+    peakPx    := na(peakPx) ? high : math.max(peakPx, high)
+    hardStop   = strategy.position_avg_price - stopDistIn
+    trailStop  = peakPx - trailMult * atrVal
+    stopLevel := math.max(nz(stopLevel, hardStop), math.max(hardStop, trailStop))
+    strategy.exit("L-x", from_entry = "L", stop = stopLevel)
+    if barsIn >= maxBars
+        strategy.close("L", comment = "temps")
+
+else if strategy.position_size < 0
+    barsIn    := barsIn + 1
+    peakPx    := na(peakPx) ? low : math.min(peakPx, low)
+    hardStop   = strategy.position_avg_price + stopDistIn
+    trailStop  = peakPx + trailMult * atrVal
+    stopLevel := math.min(nz(stopLevel, hardStop), math.min(hardStop, trailStop))
+    strategy.exit("S-x", from_entry = "S", stop = stopLevel)
+    if barsIn >= maxBars
+        strategy.close("S", comment = "temps")
+
+else
+    stopLevel := na
+    peakPx    := na
+    barsIn    := 0
+
+// ------------------------------------------------- STATISTIQUES EN R ---------
+var float sumR     = 0.0
+var float sumWin   = 0.0
+var float sumLos   = 0.0
+var int   nWin     = 0
+var int   nLos     = 0
+var float lastDist = na
+
+if not flat and flat[1]
+    lastDist := stopDistIn
+
+if strategy.closedtrades > nz(strategy.closedtrades[1], 0) and not na(lastDist) and lastDist > 0
+    idx = strategy.closedtrades - 1
+    ep  = strategy.closedtrades.entry_price(idx)
+    xp  = strategy.closedtrades.exit_price(idx)
+    dir = strategy.closedtrades.size(idx) > 0 ? 1.0 : -1.0
+    rr  = dir * (xp - ep) / lastDist
+    sumR := sumR + rr
+    if rr > 0
+        sumWin := sumWin + rr
+        nWin   := nWin + 1
+    else
+        sumLos := sumLos + rr
+        nLos   := nLos + 1
+
+nAll = nWin + nLos
+expR = nAll > 0   ? sumR / nAll        : 0.0
+pf   = sumLos < 0 ? sumWin / -sumLos   : 0.0
+wr   = nAll > 0   ? nWin / nAll * 100.0 : 0.0
+avgW = nWin > 0   ? sumWin / nWin      : 0.0
+avgL = nLos > 0   ? sumLos / nLos      : 0.0
+rrAvg = avgL < 0  ? avgW / -avgL       : 0.0
+
+var table stats = table.new(position.top_right, 2, 8, border_width = 1)
+var table warn  = table.new(position.bottom_right, 1, 1)
+
+if barstate.islast
+    bg  = expR > 0 ? color.new(color.green, 82) : color.new(color.red, 82)
+    hdr = color.new(color.gray, 55)
+    table.cell(stats, 0, 0, "En R",             bgcolor = hdr, text_color = color.white)
+    table.cell(stats, 1, 0, str.tostring(nAll) + " trades", bgcolor = hdr, text_color = color.white)
+    table.cell(stats, 0, 1, "expectancy")
+    table.cell(stats, 1, 1, str.tostring(expR, "#.###") + " R", bgcolor = bg)
+    table.cell(stats, 0, 2, "profit factor")
+    table.cell(stats, 1, 2, str.tostring(pf, "#.##"), bgcolor = bg)
+    table.cell(stats, 0, 3, "R:R moyen")
+    table.cell(stats, 1, 3, str.tostring(rrAvg, "#.##"))
+    table.cell(stats, 0, 4, "taux de reussite")
+    table.cell(stats, 1, 4, str.tostring(wr, "#.#") + " %")
+    table.cell(stats, 0, 5, "gain moyen")
+    table.cell(stats, 1, 5, str.tostring(avgW, "#.##") + " R")
+    table.cell(stats, 0, 6, "perte moyenne")
+    table.cell(stats, 1, 6, str.tostring(avgL, "#.##") + " R")
+    table.cell(stats, 0, 7, "total")
+    table.cell(stats, 1, 7, str.tostring(sumR, "#.#") + " R")
+
+    if warnTf and timeframe.period != "240"
+        table.cell(warn, 0, 0, "! mesure en H4 - graphe actuel : " + timeframe.period,
+             bgcolor = color.new(color.orange, 20), text_color = color.white)
+
+// ------------------------------------------------------------------ VISUEL ---
+plot(emaVal,  "EMA regime",    color = color.new(color.orange, 35), linewidth = 2)
+plot(upBreak, "Donchian haut", color = color.new(color.teal, 55))
+plot(dnBreak, "Donchian bas",  color = color.new(color.maroon, 55))
+plot(strategy.position_size != 0 ? stopLevel : na, "Stop",
+     color = color.red, style = plot.style_linebr, linewidth = 2)
+bgcolor(close > emaVal ? color.new(color.teal, 94) : color.new(color.maroon, 94))

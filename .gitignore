@@ -1,0 +1,12 @@
+# Journaux d'execution : bruit, regenerables.
+resolve*.log
+
+# Chemin absolu propre a cette machine — jamais versionne.
+python.cfg
+
+__pycache__/
+*.pyc
+
+# NE PAS ignorer les sorties de resolution : `univers_resolu.json`,
+# `spreads_mesures.csv` et `RAPPORT_UNIVERS.md` SONT le gel de l'univers.
+# C'est leur contenu, et le SHA256 qui en decoule, qui rendent le test verifiable.
