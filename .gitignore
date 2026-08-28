@@ -13,3 +13,6 @@ __pycache__/
 
 # Journal de la tache d echantillonnage : bruit, regenerable.
 echantillonnage.log
+
+# Journal de l archivage : bruit, regenerable.
+archivage.log
