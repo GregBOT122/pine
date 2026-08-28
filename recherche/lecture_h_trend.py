@@ -20,7 +20,30 @@ Il ne retape aucune ligne de la regle : il execute les definitions du fichier
 gele, verbatim.
 
 ────────────────────────────────────────────────────────────────────────────────
-CE QUE LA VERIFICATION A TROUVE LE 2026-08-28, ET QUI BLOQUE LA LECTURE
+LES TROIS BLOCAGES, ET LEUR AMENDEMENT DU 2026-08-28
+────────────────────────────────────────────────────────────────────────────────
+Trouves par ce script le jour de son ecriture, et tranches le meme jour par
+`AMENDEMENT_TREND_H4_2026-08-28.md`, avant qu'aucune statistique de la fenetre
+n'existe. Les trois resolutions ont en commun de ne toucher NI le `.pine` NI
+`null_shift.py` : ce qui est gele est la REGLE, pas les couts, pas la politique
+de decalage, pas l'emplacement des donnees.
+
+1. FRICTION -> la table du test est celle de `univers_resolu.json` (42/42
+   mesures, regle 11, quatre sessions), au p90 plus commission, et NON le dict
+   `FRICTION` de la calibration (17 symboles). `precompute(d, fric)` prend le
+   cout en argument : rien a modifier dans le fichier gele.
+2. DECALAGE -> MINSHIFT reste 500, parce que MAXB=400 : un decalage de 300
+   ferait retomber un signal DANS la fenetre de son propre trade. La prose
+   « >= 300 » est amendee, pas contournee. Et la lecture exige desormais 99
+   decalages distincts, pour que le plancher reel de p (0,010) soit un
+   cinquieme du seuil.
+3. DONNEES -> l'archivage doit stocker du H1 dans le cache, parce que c'est ce
+   que `load()` reagrege. Les CSV H4 du broker ne sont PAS les memes barres.
+
+Ce qui suit reste ouvert et doit se voir a chaque execution :
+
+────────────────────────────────────────────────────────────────────────────────
+CE QUE LA VERIFICATION CONTROLE ENCORE
 ────────────────────────────────────────────────────────────────────────────────
 Ecrit ici parce que c'est le genre de chose qu'on decouvre le jour de la lecture,
 quand il est trop tard pour la corriger sans choisir sur le resultat.
@@ -94,6 +117,18 @@ GELE_NULL = RACINE / "recherche" / "null_shift.py"
 UNIVERS = RACINE / "univers" / "univers_resolu.json"
 ARCHIVE = Path(r"C:\Users\grego\dev\Daytrading\donnees-h4")
 
+# --- LA SOURCE DE LA LECTURE (amendement 3). `null_shift.CACHE` pointe sur
+#     `bot/xaubot/xaubot/data/cache`, qui (a) ne couvre que 18 des 42 symboles
+#     et (b) vit DANS un depot git : y deplacer le code deplacerait les
+#     donnees, la panne qui a coute deux jours de collecte L2. L'archive H1 vit
+#     donc hors depot, a cote de `donnees-h4` et `donnees-l2`.
+#
+#     On ne modifie PAS le fichier gele : `load()` lit `CACHE` dans son propre
+#     espace de noms, et cet espace est celui qu'on a cree en l'executant. Lui
+#     assigner une autre valeur AVANT d'appeler `load` suffit, et l'empreinte
+#     reste intacte. L'emplacement des donnees n'a jamais fait partie de la regle.
+CACHE_H1 = Path(r"C:\Users\grego\dev\Daytrading\donnees-h1")
+
 # --- Constantes recopiees de PREINSCRIPTION_TREND_H4_2026-08-26.md ------------
 # Ce ne sont pas des reglages. Les changer changerait le test.
 EMPREINTE = "1f5318dc5bbaad7c93315dde947fb17a4fd58709134786e475b7cd72d4e32c2c"
@@ -108,6 +143,16 @@ PUISSANCE_MIN = 0.80
 CONTROLE_CALENDAIRE = datetime(2028, 9, 1, tzinfo=timezone.utc)
 # Table de la pre-inscription, pour confronter le calcul a ce qui fut annonce.
 PUISSANCE_ANNONCEE = {600: 0.71, 1000: 0.84, 1200: 0.88}
+
+# --- AMENDEMENT_TREND_H4_2026-08-28 ------------------------------------------
+# Decalages distincts exiges en plus de n>=1200. Le plancher REEL de p vaut
+# 1/(distincts+1), jamais 1/(B+1) : B tire avec remise dans un ensemble fini.
+# 99 -> plancher 0,010, un cinquieme du seuil de 0,05 : c'est le seuil qui
+# decide, pas la resolution de l'instrument.
+DECALAGES_MIN = 99
+PLANCHER_P_VISE = 0.01
+# Le p90 et non la mediane : une confirmation doit survivre aux mauvais jours.
+QUANTILE_SPREAD = "p90"
 
 # Codes de sortie, distincts pour qu'un refus ne passe pas pour un resultat.
 OK, BLOQUE, EMPREINTE_CASSEE, TROP_TOT, SOUS_PUISSANT = 0, 3, 4, 5, 6
@@ -140,6 +185,8 @@ def charger_appareil_gele() -> dict:
 
     ns: dict = {}
     exec(compile(prefixe + bloc_stat, str(GELE_NULL), "exec"), ns)
+    # Amendement 3 : la source des barres, et rien d'autre, est redirigee.
+    ns["CACHE"] = str(CACHE_H1)
     return ns
 
 
@@ -219,36 +266,71 @@ def verifier(a) -> int:
 
     ns = charger_appareil_gele()
 
-    # --- BLOCAGE 1 : la friction ne couvre pas l'univers.
-    fric = ns["FRICTION"]
-    sans = sorted(set(resolus) - set(fric))
-    L += ["## Frictions connues de l'appareil gele",
-          "  couverts : %d / %d symboles" % (len(resolus) - len(sans), len(resolus))]
-    if sans:
-        L += ["  SANS COUT D'ALLER-RETOUR : %d" % len(sans),
-              "    " + ", ".join(sans)]
-        blocages.append(
-            "%d des %d symboles de l'univers n'ont pas de friction dans "
-            "l'appareil gele. Leur en donner une en 2028 serait un parametre "
-            "choisi apres coup ; les retirer est explicitement interdit."
-            % (len(sans), len(resolus)))
-    L += [""]
+    # --- AMENDEMENT 1 : la friction vient de l'univers, pas de la calibration.
+    #     Le dict FRICTION du fichier gele couvre 17 symboles sur 42 ; il a ete
+    #     ecrit pour la calibration historique, la veille du gel de l'univers.
+    #     `precompute(d, fric)` prend le cout en ARGUMENT, donc rien n'a besoin
+    #     d'etre modifie dans le fichier gele pour lui en passer un autre.
+    spreads = uni.get("spreads", {})
+    frais_crypto = float(uni.get("frais_crypto_rt_pct", 0.0))
+    table, sans = {}, []
+    for sym in sorted(resolus):
+        m = spreads.get(sym)
+        if not m or QUANTILE_SPREAD not in m:
+            sans.append(sym); continue
+        # crypto = paires ...USDT, les seules a payer une commission taker.
+        com = frais_crypto if sym.endswith("USDT") else 0.0
+        table[sym] = float(m[QUANTILE_SPREAD]) + com
 
-    # --- BLOCAGE 2 : la source de donnees.
-    presents = [s for s in resolus if (ARCHIVE / ("%s_H4.csv" % s)).exists()]
-    L += ["## Donnees de la fenetre",
-          "  source de l'appareil gele : %s" % ns["CACHE"],
-          "     -> parquet H1 reechantillonne en H4",
-          "  source de l'archivage     : %s" % ARCHIVE,
-          "     -> CSV H4 deja agreges, %d / %d symboles presents"
-          % (len(presents), len(resolus))]
-    L += ["  Les deux ne sont pas le meme magasin. `load()` du fichier gele ne",
-          "  trouvera pas la fenetre 2026-2028 dans le cache parquet si rien ne",
-          "  l'y ecrit — l'archivage trimestriel ecrit ailleurs.", ""]
-    blocages.append(
-        "le `load()` gele lit le cache parquet H1 ; l'archivage trimestriel "
-        "ecrit des CSV H4 dans un autre dossier. La source de la lecture n'est "
-        "pas celle que l'assurance remplit.")
+    L += ["## Friction A/R — table de l'univers (amendement 1)",
+          "  regle : %s du spread mesure + commission (%.2f %% crypto, 0 sinon)"
+          % (QUANTILE_SPREAD, frais_crypto),
+          "  couverts : %d / %d symboles" % (len(table), len(resolus))]
+    if table:
+        pire = sorted(table.items(), key=lambda kv: -kv[1])[:3]
+        moins = sorted(table.items(), key=lambda kv: kv[1])[:3]
+        L += ["  plus cher : " + ", ".join("%s %.4f%%" % kv for kv in pire),
+              "  moins cher: " + ", ".join("%s %.4f%%" % kv for kv in moins)]
+    L += ["  Pour memoire, le dict FRICTION du fichier gele n'en couvre que "
+          "%d et n'est PAS utilise." % len(ns["FRICTION"])]
+    if sans:
+        L += ["  SANS SPREAD MESURE : %d -> %s" % (len(sans), ", ".join(sans))]
+        blocages.append(
+            "%d symboles n'ont pas de spread mesure dans univers_resolu.json. "
+            "La table de friction de l'amendement 1 ne peut pas etre construite "
+            "pour eux." % len(sans))
+    L += ["  La valeur definitive sera RECALCULEE a la lecture sur les spreads",
+          "  de la fenetre ; celle-ci est l'instantane de reference.", ""]
+
+    # --- AMENDEMENT 3 : l'archivage doit stocker du H1 dans le cache, parce
+    #     que c'est ce que `load()` reagrege. Les CSV H4 du broker ne sont pas
+    #     les memes barres : choisir entre les deux en 2028 serait choisir une
+    #     construction de barres en connaissant le paysage.
+    cache = Path(ns["CACHE"])
+    h4_csv = [s for s in resolus if (ARCHIVE / ("%s_H4.csv" % s)).exists()]
+    # Presence d'un H1 quelconque : sans lui, `load()` rend None et la boucle
+    # de calibration ecarte le symbole par `continue`, SANS ERREUR.
+    h1_frais = [s for s in resolus
+                if list(cache.glob("%s_H1_*.parquet" % s))]
+
+    L += ["## Donnees de la fenetre (amendement 3)",
+          "  source de la lecture : %s" % cache,
+          "     -> parquet H1, reagrege en H4 par `load()` du fichier gele",
+          "  H1 couvrant la fenetre : %d / %d symboles"
+          % (len(h1_frais), len(resolus)),
+          "  temoin secondaire : %d / %d CSV H4 (PAS la source de la lecture)"
+          % (len(h4_csv), len(resolus))]
+    if len(h1_frais) < len(resolus):
+        absents = sorted(set(resolus) - set(h1_frais))
+        L += ["  SANS AUCUN H1 : %d -> %s" % (len(absents), ", ".join(absents)),
+              "  -> `load()` rend None pour eux et la boucle fait `continue` :",
+              "     ils sortiraient de l'univers SANS QU'UNE ERREUR SOIT LEVEE."]
+        blocages.append(
+            "%d des %d symboles n'ont aucun parquet H1 dans l'archive. "
+            "`load()` les ecarterait EN SILENCE — « retirer un symbole apres "
+            "coup » commis par omission."
+            % (len(absents), len(resolus)))
+    L += [""]
 
     # --- Ce que la fenetre contient AUJOURD'HUI, et sa projection.
     #     On ne compte que des barres. Aucun signal n'est evalue ici.
@@ -270,29 +352,40 @@ def verifier(a) -> int:
         mois = 20.0
         min_n_projete = int(par_an[lent] * mois / 12.0)
         minshift = int(ns["MINSHIFT"])
-        distincts = min_n_projete - 2 * minshift + 1
-        L += ["## Espace des decalages au seuil de lecture",
+        maxb = int(ns["MAXB"])
+        # numpy integers(low, high) exclut high -> distincts = min_n - 2*MINSHIFT
+        distincts = min_n_projete - 2 * minshift
+        L += ["## Espace des decalages (amendement 2)",
+              "  MINSHIFT = %d, MAXB = %d  ->  %s"
+              % (minshift, maxb,
+                 "OK, un decalage ne peut pas retomber dans le trade qu'il "
+                 "deplace" if minshift > maxb else
+                 "CONTAMINE : le decalage est plus court qu'un trade"),
+              "  (c'est pourquoi le « >= 300 » du document est amende : 300 < "
+              "MAXB.)",
               "  serie la plus courte : %s, %.0f barres H4/an" % (lent, par_an[lent]),
               "  fenetre projetee a n=%d trades : ~%.0f mois -> %d barres"
               % (CIBLE_N, mois, min_n_projete),
-              "  MINSHIFT du fichier gele : %d" % minshift,
-              "  decalages distincts tirables : %d" % max(0, distincts)]
-        if distincts <= 0:
-            L += ["  -> VIDE. Aucune permutation n'est tirable : le null "
-                  "n'existe pas."]
+              "  decalages distincts tirables : %d  (exiges : %d)"
+              % (max(0, distincts), DECALAGES_MIN)]
+        if minshift <= maxb:
             blocages.append(
-                "l'intervalle de decalage [%d, %d] est vide sur la serie la "
-                "plus courte (%s). Le decalage etant COMMUN, il est borne par "
-                "elle. Avec MINSHIFT=%d le null ne peut pas etre calcule."
-                % (minshift, min_n_projete - minshift, lent, minshift))
-        else:
+                "MINSHIFT=%d n'excede pas MAXB=%d : un signal decale retombe "
+                "dans la fenetre de son propre trade et le null garde une part "
+                "de l'alignement qu'il doit detruire." % (minshift, maxb))
+        if distincts > 0:
             plancher = 1.0 / (min(int(ns["B"]), distincts) + 1)
             L += ["  plancher REEL de p : %.4f  (et non 1/(B+1) = %.4f)"
                   % (plancher, 1.0 / (int(ns["B"]) + 1))]
-            if plancher >= ALPHA:
-                blocages.append(
-                    "le plancher reel de p (%.4f) atteint le seuil %.2f : le "
-                    "test ne peut pas rejeter." % (plancher, ALPHA))
+        if distincts < DECALAGES_MIN:
+            manque = DECALAGES_MIN + 2 * minshift - min_n_projete
+            L += ["  -> PAS ENCORE LISIBLE a n=%d : il manque %d barres sur %s."
+                  % (CIBLE_N, manque, lent),
+                  "     ~%.1f mois de plus que le seuil en trades."
+                  % (manque / par_an[lent] * 12)]
+            L += ["     Ce n'est pas un blocage : c'est la condition de lecture",
+                  "     ajoutee par l'amendement 2, mecanique et independante du",
+                  "     resultat. Elle se verifiera d'elle-meme le moment venu."]
         L += [""]
 
     # --- Ou en est l'accumulation, en BARRES. Pas en trades : compter les
@@ -340,16 +433,19 @@ def verifier(a) -> int:
     # --- Verdict.
     L += ["## VERDICT"]
     if blocages:
-        L += ["  %d BLOCAGE(S) — la lecture de 2028 echouerait en l'etat :" % len(blocages)]
+        L += ["  %d BLOCAGE(S) — la lecture echouerait en l'etat :" % len(blocages)]
         for i, b in enumerate(blocages, 1):
             L += ["    %d. %s" % (i, b)]
         L += ["",
-              "  Aucun n'est tranche ici : les trancher serait modifier le test.",
-              "  Ils demandent un AMENDEMENT ecrit et horodate, comme celui du",
-              "  2026-08-27 pour H_L2 — avant de voir la moindre donnee."]
+              "  Un blocage n'est PAS « le seuil n'est pas atteint ». C'est",
+              "  l'appareil qui ne peut pas rendre de reponse, quel que soit le",
+              "  nombre de trades accumules."]
     else:
-        L += ["  Aucun blocage. L'appareil pourra etre lu quand n atteindra %d."
-              % CIBLE_N]
+        L += ["  Aucun blocage d'appareil.",
+              "  La lecture attend ses deux conditions : n >= %d ET %d decalages"
+              % (CIBLE_N, DECALAGES_MIN),
+              "  distincts. Les deux sont mecaniques et se verifient sans jamais",
+              "  regarder la relation testee."]
     L += [""]
 
     print("\n".join(L))

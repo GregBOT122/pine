@@ -1,4 +1,10 @@
-"""Archivage trimestriel des barres H4 de l'univers H_TREND.
+"""Archivage trimestriel de l'univers H_TREND : H1 (source de la lecture) + H4.
+
+LE H1 A ETE AJOUTE LE 2026-08-28 (AMENDEMENT_TREND_H4_2026-08-28). Ce script
+n'archivait que du H4 ; or l'appareil gele demande du H1 et le reagrege
+lui-meme. Il remplissait donc un magasin que la lecture n'ouvre pas. Voir le
+commentaire de CACHE_H1 ci-dessous, et les 24 symboles qui auraient ete
+ecartes en silence.
 
 POURQUOI, ET SURTOUT POURQUOI PAS POUR LA RAISON QU'ON CROIT.
 
@@ -53,6 +59,27 @@ UNIVERS = ICI / "univers_resolu.json"
 # sous controle de version. Meme principe que `tradingbott/chemins.py`.
 ARCHIVE = Path(r"C:\Users\grego\dev\Daytrading\donnees-h4")
 
+# --- ARCHIVE H1, ajoutee le 2026-08-28 par AMENDEMENT_TREND_H4_2026-08-28 -----
+#
+# POURQUOI DU H1 ALORS QU ON ARCHIVE DEJA DU H4. Ce ne sont pas les memes
+# barres. L appareil gele (`null_shift.load`) demande du H1 et le reagrege avec
+# `resample('4h')` ; ce script demandait `TIMEFRAME_H4` a MT5, dont les bornes
+# de seance ne tombent pas au meme endroit. Archiver du H4 laissait donc la
+# lecture sans sa source.
+#
+# ET LE CACHE NE COUVRE QUE 18 SYMBOLES — l ancien panier, pas l univers fige a
+# 42. Mesure le 2026-08-28 : ADAUSDT, AUDJPY, DE40, NATGAS, WTI et 19 autres
+# n ont AUCUN parquet H1, meme historique. Or `load()` rend `None` quand il ne
+# trouve rien, et la boucle de calibration fait `continue` : en 2028, 24 des 42
+# symboles auraient ete ECARTES EN SILENCE, sans une erreur. C est « retirer un
+# symbole apres coup », commis par omission.
+#
+# HORS DEPOT, comme `donnees-h4` et `donnees-l2`. Le cache de xaubot est
+# gitignore, mais il vit DANS un depot : deplacer le code y deplacerait les
+# donnees — la panne exacte qui a coute deux jours de collecte L2 les 25 et 26
+# aout. La regle du depot est un chemin absolu declare, jamais derive.
+CACHE_H1 = Path(r"C:\Users\grego\dev\Daytrading\donnees-h1")
+
 # Le test porte sur les barres POSTERIEURES au 2026-08-27. On archive a partir
 # d'un peu avant, pour que le calcul d'ATR et d'EMA200 ait son amorce.
 DEPUIS = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -93,11 +120,11 @@ def fusionner(chemin: Path, barres: list[tuple]) -> tuple[int, int]:
     return len(connues), len(connues) - avant
 
 
-def binance_h4(sym: str) -> list[tuple]:
+def binance_h4(sym: str, interval: str = "4h") -> list[tuple]:
     out, debut = [], int(DEPUIS.timestamp() * 1000)
     while True:
         url = (f"https://api.binance.com/api/v3/klines?symbol={sym}"
-               f"&interval=4h&startTime={debut}&limit=1000")
+               f"&interval={interval}&startTime={debut}&limit=1000")
         req = urllib.request.Request(url, headers={"User-Agent": "archivage/1"})
         with urllib.request.urlopen(req, timeout=20) as r:
             lot = json.load(r)
@@ -110,14 +137,56 @@ def binance_h4(sym: str) -> list[tuple]:
     return out
 
 
-def mt5_h4(mt5, nom: str) -> list[tuple]:
+def mt5_h4(mt5, nom: str, tf=None) -> list[tuple]:
     mt5.symbol_select(nom, True)
-    r = mt5.copy_rates_range(nom, mt5.TIMEFRAME_H4, DEPUIS,
-                             datetime.now(timezone.utc))
+    r = mt5.copy_rates_range(nom, tf if tf is not None else mt5.TIMEFRAME_H4,
+                             DEPUIS, datetime.now(timezone.utc))
     if r is None:
         return []
     return [(int(x["time"]), x["open"], x["high"], x["low"], x["close"],
              x["tick_volume"]) for x in r]
+
+
+def archiver_h1(cible: str, barres: list[tuple]) -> tuple[int, int]:
+    """Ecrit les barres H1 en parquet, au schema que `null_shift.load` attend.
+
+    SCHEMA IMPOSE, releve sur les parquets existants du cache : index
+    `DatetimeIndex` nomme `time`, colonnes open/high/low/close/tick_volume.
+    `load()` fait `pd.read_parquet(f)` puis `d[['open','high','low','close']]`
+    et `.resample('4h')` — un index qui ne serait pas temporel casserait tout,
+    et une colonne manquante aussi.
+
+    UN FICHIER PAR PASSAGE, nomme par la plage couverte. `load()` fait
+    `sorted(glob(...))` puis `~index.duplicated()` (keep='first') : le fichier
+    le PLUS ANCIEN gagne sur les doublons. Ecrire un fichier neuf est donc
+    append-only en esprit — ce qui a ete vu une fois est garde, meme si le
+    courtier en rend plus tard une version differente. Meme regle que
+    `fusionner()` pour le H4.
+    """
+    import pandas as pd
+
+    if not barres:
+        return 0, 0
+    d = pd.DataFrame(barres, columns=["ts", "open", "high", "low", "close",
+                                      "tick_volume"])
+    d = d.astype({"open": float, "high": float, "low": float, "close": float,
+                  "tick_volume": float})
+    d.index = pd.to_datetime(d.pop("ts"), unit="s")
+    d.index.name = "time"
+    d = d[~d.index.duplicated(keep="first")].sort_index()
+
+    CACHE_H1.mkdir(parents=True, exist_ok=True)
+    nom = "%s_H1_%s_%s.parquet" % (cible, d.index[0].strftime("%Y%m%d"),
+                                   d.index[-1].strftime("%Y%m%d"))
+    chemin = CACHE_H1 / nom
+    deja = len(list(CACHE_H1.glob("%s_H1_*.parquet" % cible)))
+    if chemin.exists():
+        # Deja archive a l'identique aujourd'hui : ne pas reecrire.
+        return len(d), 0
+    tmp = chemin.with_suffix(".tmp")
+    d.to_parquet(tmp)
+    tmp.replace(chemin)
+    return len(d), deja + 1
 
 
 def main() -> int:
@@ -133,7 +202,7 @@ def main() -> int:
     d = json.loads(UNIVERS.read_text(encoding="utf-8"))
     resolus = d["resolus"]
 
-    lignes, vides = [], []
+    lignes, vides, sans_h1 = [], [], []
     try:
         import MetaTrader5 as mt5
         ok_mt5 = mt5.initialize()
@@ -158,14 +227,28 @@ def main() -> int:
                 print(f"  {cible:10s} AUCUNE BARRE — delisté ?")
             continue
         total, neuves = fusionner(ARCHIVE / f"{cible}_H4.csv", barres)
-        lignes.append((cible, nom, total, neuves))
-        print(f"  {cible:10s} {total:6d} barres (+{neuves})")
+
+        # --- H1, la source REELLE de la lecture (amendement 3). Le H4
+        #     ci-dessus reste un temoin secondaire : ce ne sont pas les memes
+        #     barres, et c'est le H1 que `load()` reagrege.
+        try:
+            b1 = (binance_h4(nom, "1h") if crypto
+                  else (mt5_h4(mt5, nom, mt5.TIMEFRAME_H1) if ok_mt5 else []))
+            n1, f1 = archiver_h1(cible, b1)
+        except Exception as ex:                              # noqa: BLE001
+            n1, f1 = 0, 0
+            print(f"  {cible:10s} H1 ECHEC {type(ex).__name__}")
+        if not n1:
+            sans_h1.append(cible)
+
+        lignes.append((cible, nom, total, neuves, n1))
+        print(f"  {cible:10s} {total:6d} barres H4 (+{neuves})   {n1:6d} H1")
 
     if ok_mt5:
         mt5.shutdown()
 
     horo = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    r = [f"# Archivage H4 de l'univers H_TREND — {horo}", "",
+    r = [f"# Archivage H1 + H4 de l'univers H_TREND — {horo}", "",
          f"**{len(lignes)} / {len(resolus)} symboles archivés.** "
          f"Destination : `{ARCHIVE}`", ""]
     if vides:
@@ -177,13 +260,32 @@ def main() -> int:
               "| Cible | Nom broker | Cause |", "|---|---|---|"]
         r += [f"| `{c}` | `{n}` | {m} |" for c, n, m in vides]
         r.append("")
-    r += ["## Archivé", "", "| Cible | Nom broker | Barres H4 | Nouvelles |",
-          "|---|---|---|---|"]
-    r += [f"| `{c}` | `{n}` | {t} | +{v} |" for c, n, t, v in sorted(lignes)]
+    if sans_h1:
+        # Un symbole sans H1 est un symbole que `load()` rendra `None` et que
+        # la boucle de calibration ecartera par `continue`, SANS ERREUR. C est
+        # « retirer un symbole apres coup » commis en silence : il faut donc
+        # que ce soit bruyant ici, seul endroit ou on peut encore l apprendre.
+        r += ["## ⚠ SYMBOLES SANS H1 — LA LECTURE LES ÉCARTERAIT EN SILENCE", "",
+              "`load()` rend `None` quand aucun parquet H1 n existe, et la "
+              "boucle de calibration fait `continue`. Ces symboles sortiraient "
+              "de l univers sans qu aucune erreur ne soit levée — ce que la "
+              "pré-inscription interdit.", "",
+              "    " + ", ".join(sorted(sans_h1)), ""]
+
+    r += ["## Archivé", "",
+          f"H4 (témoin secondaire) : `{ARCHIVE}`", "",
+          f"**H1 (source de la lecture) : `{CACHE_H1}`**", "",
+          "| Cible | Nom broker | Barres H4 | Nouvelles | Barres H1 |",
+          "|---|---|---|---|---|"]
+    r += [f"| `{c}` | `{n}` | {t} | +{v} | {h} |"
+          for c, n, t, v, h in sorted(lignes)]
     sortie = a.sortie or ICI / "RAPPORT_ARCHIVAGE.md"
     sortie.write_text("\n".join(r) + "\n", encoding="utf-8")
     print(f"\nrapport : {sortie}")
-    return 1 if vides else 0
+    if sans_h1:
+        print("! %d symboles SANS H1 — la lecture les ecarterait en silence : %s"
+              % (len(sans_h1), ", ".join(sorted(sans_h1))))
+    return 1 if (vides or sans_h1) else 0
 
 
 if __name__ == "__main__":
