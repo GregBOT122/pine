@@ -98,33 +98,40 @@ L'assurance est souscrite ; elle n'est pas branchée.
 
 ---
 
-## Quatrième constat, plus discret : la table de puissance est optimiste
+## Quatrième constat — RETIRÉ LE MÊME JOUR, il était faux
 
-La pré-inscription annonce une puissance de 0,71 / 0,84 / 0,88 à n = 600 / 1000
-/ 1200. Recalculée de deux façons indépendantes (forme fermée et simulation à
-20 000 tirages), avec les mêmes constantes du document (`c = 1,72`,
-`sd = 2,605 R`, effet `+0,16 R`, seuil unilatéral 5 %) :
-
-| n | forme fermée | simulée | annoncée |
-|---|---|---|---|
-| 600 | 0,662 | 0,657 | 0,71 |
-| 1000 | 0,804 | 0,798 | 0,84 |
-| 1200 | 0,851 | 0,848 | **0,88** |
-
-Les deux méthodes s'accordent entre elles à 0,005 près et tombent toutes deux
-sous la table, d'environ 0,04. **L'écart est donc dans le chiffre annoncé.**
-
-Il compte, parce que la pré-inscription pose un garde-fou : *si la puissance
-atteinte est sous 0,80, le test n'est pas lu*. À n = 1000 la valeur recalculée
-vaut 0,80 — **exactement le plancher, marge nulle**, là où le document laissait
-croire à un confort de 0,04. Le seuil `n ≥ 1200` reste au-dessus, mais la marge
-est deux fois plus mince qu'écrit.
-
-Ça ne change aucune décision aujourd'hui : `c` sera de toute façon **recalculé
-sur les données du test** avant lecture, comme prévu. Ça dit seulement que la
-projection ne doit pas servir de coussin.
-
----
+> **Ce paragraphe affirmait que la table de puissance de la pré-inscription
+> était « haute d'environ 0,04 », recalculée « de deux façons indépendantes ».
+> C'était mon erreur, mais elle a une cause dans le document.** Celui-ci donne
+> l'écart-type du null **deux fois, et pas pareil** :
+>
+>     §4                 « Écart-type du null : 1,72/√n »
+>     §Garde-fou   puissance = Φ( (0,16 − 1,645·c/√(1,32·n)) / (sd_trade/√n) )
+>
+> J'ai pris celle du §4, qui est celle imprimée juste au-dessus de la table. La
+> table, elle, est calculée avec celle du §Garde-fou — et se reconstruit alors à
+> la virgule près (0,61 / 0,71 / 0,84 / 0,88). Mes « deux façons indépendantes »
+> partageaient donc la même hypothèse, et leur accord ne prouvait rien.
+>
+> **C'est le §Garde-fou qui a raison, parce que le 1,32 est mesuré** : un
+> décalage circulaire produit 1,318 fois plus de trades que la série observée
+> (2 593 contre 1 968), les signaux déplacés se heurtant moins au blocage « pas
+> de nouvelle entrée tant qu'on est en position ». Le §4 est une abréviation qui
+> a perdu le facteur.
+>
+> Il y a bien un problème sur la puissance, mais ailleurs et plus grave : le
+> `c = 1,72` de la table est **19 % sous le 2,125 que le script gelé mesure
+> lui-même**. Voir `AMENDEMENT_TREND_H4_2026-08-28.md`, §Amendement 4, pour la
+> table corrigée et ce qu'elle implique — la marge à n = 1200 vaut 0,031 et non
+> 0,081, et une dérive de `c` vers le bloc crypto ferait passer n = 1200 sous le
+> plancher.
+>
+> **La leçon de méthode, à garder** : j'ai recalculé une formule au lieu de la
+> recopier, puis j'ai présenté l'accord entre ma forme fermée et ma simulation
+> comme une confirmation. Deux méthodes qui partagent la même hypothèse fausse
+> s'accordent parfaitement. La vérification qui aurait tout de suite tranché
+> était de reproduire la table publiée — elle prend trois lignes, et je ne l'ai
+> pas faite avant d'écrire que le document avait tort.
 
 ## Ce que cette note ne fait pas
 

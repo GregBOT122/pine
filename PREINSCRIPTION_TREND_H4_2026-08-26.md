@@ -79,6 +79,27 @@ Effet à détecter : **δ = +0,16 R**. Seuil 5 % unilatéral.
 pour 80 %, la marge absorbe la corrélation supplémentaire qu'introduira
 l'élargissement de l'univers.
 
+> **RENVOI AJOUTÉ LE 2026-08-28 — cette table est optimiste. Aucun engagement
+> n'est modifié ici ; seul ce renvoi est inséré, pour qu'on ne l'utilise pas
+> telle quelle en 2028.**
+>
+> L'arithmétique est juste : la table se reconstruit exactement avec la formule
+> du §Garde-fou ci-dessous, facteur `1,32·n` compris. Mais elle emploie
+> `c = 1,72`, et le rejeu de `null_shift.py` du 2026-08-28 **mesure c = 2,125**
+> (écart-type du null 0,0417 à n = 1 968) — 19 % de plus. Le même rejeu
+> reproduit tout le reste à la virgule près.
+>
+> Avec le `c` mesuré : n=1200 → **0,831** et non 0,881. Le plancher de 0,80 tient
+> encore, mais la marge vaut 0,031 au lieu de 0,081. Et si `c` dérive vers le
+> 2,42 du bloc crypto — dégradation que ce document redoute lui-même deux
+> paragraphes plus bas — n=1200 rend **0,787, sous le plancher**, et il en
+> faudrait 1 251.
+>
+> Le garde-fou du §suivant absorbe cela sans qu'aucune décision soit à prendre :
+> `c` sera recalculé sur les données du test. Il faut simplement s'attendre à ce
+> qu'il morde. Table corrigée et détail :
+> `AMENDEMENT_TREND_H4_2026-08-28.md`, §Amendement 4.
+
 **Sans cet audit, ce test aurait été muet et je l'aurais cru concluant.**
 
 ## 5. Le goulot : la cadence — corrigé le 2026-08-26 après inspection de la station

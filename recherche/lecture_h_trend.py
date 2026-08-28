@@ -154,6 +154,17 @@ PLANCHER_P_VISE = 0.01
 # Le p90 et non la mediane : une confirmation doit survivre aux mauvais jours.
 QUANTILE_SPREAD = "p90"
 
+# --- `c` : TROIS VALEURS, ET IL FAUT LES TROIS -------------------------------
+# 1,72 est la valeur qu'emploie la table de la pre-inscription.
+# 2,125 est celle que le script gele MESURE lui-meme : rejeu du 2026-08-28,
+#       ecart-type du null 0,0417 a n observe 1 968, donc
+#       c = 0,0417 x sqrt(1,32 x 1968) = 2,125. Le rejeu reproduit par ailleurs
+#       tout le reste a la virgule pres (null +0,2258, edge net +0,1604,
+#       p = 0,0005), donc ce n'est pas un rejeu qui aurait derive.
+# 2,42 est le bloc crypto homogene, la degradation que la pre-inscription
+#       redoute explicitement pour le nouvel univers.
+C_ANNONCE, C_MESURE, C_CRYPTO = 1.72, 2.125, 2.42
+
 # Codes de sortie, distincts pour qu'un refus ne passe pas pour un resultat.
 OK, BLOQUE, EMPREINTE_CASSEE, TROP_TOT, SOUS_PUISSANT = 0, 3, 4, 5, 6
 
@@ -211,23 +222,47 @@ def lire_h4(symbole: str):
             np.array(l)[a], np.array(c)[a])
 
 
-def puissance_forme_fermee(n: int, c_null: float) -> float:
-    """P(observe > q95 du null) sous un vrai effet de EFFET_A_DETECTER."""
+def puissance(n: int, c_null: float) -> float:
+    """Formule de la pre-inscription, §Garde-fou de puissance :
+
+        puissance = Phi( (0,16 - 1,645 c / sqrt(1,32 n)) / (sd_trade / sqrt(n)) )
+
+    ATTENTION : LE DOCUMENT DONNE L'ECART-TYPE DU NULL DEUX FOIS.
+        §4          « Ecart-type du null : 1,72/sqrt(n) »   <- sans le 1,32
+        §Garde-fou  la formule ci-dessus                    <- avec
+    La table publiee est calculee avec la SECONDE. Ma premiere version de ce
+    fichier a employe la premiere — celle qui est imprimee juste au-dessus de la
+    table — et en a conclu que le document etait haut de 0,04. C'etait faux, et
+    l'accord entre ma forme fermee et ma simulation ne prouvait rien : elles
+    partageaient la meme hypothese. Le §Garde-fou fait foi, son facteur etant
+    mesure ; le §4 doit se lire `1,72/sqrt(1,32 n)`.
+
+    D'ou vient le 1,32 : un decalage circulaire produit PLUS de trades que la
+    serie observee, parce que les signaux deplaces se heurtent moins au blocage
+    « pas de nouvelle entree tant qu'on est en position ». Rejeu de la
+    calibration gelee le 2026-08-28 : n observe 1 968, n du null 2 593, soit un
+    rapport de **1,318**. La distribution nulle est donc la moyenne de 32 % de
+    trades en plus, et son ecart-type retrecit d'autant.
+    """
     from math import erf, sqrt
     z95 = 1.6448536269514722
-    seuil = z95 * c_null / sqrt(n)
+    seuil = z95 * c_null / sqrt(1.32 * n)
     z = (EFFET_A_DETECTER - seuil) / (SD_PAR_TRADE / sqrt(n))
     return 0.5 * (1.0 + erf(z / sqrt(2.0)))
 
 
-def puissance_simulee(n: int, c_null: float, tirages: int = 20000,
-                      graine: int = 20260828) -> float:
-    """La meme chose sans approximation normale. Les deux sont imprimees."""
-    from math import sqrt
-    rng = np.random.default_rng(graine)
-    seuil = 1.6448536269514722 * c_null / sqrt(n)
-    obs = rng.normal(EFFET_A_DETECTER, SD_PAR_TRADE / sqrt(n), tirages)
-    return float((obs > seuil).mean())
+def n_pour_puissance(c_null: float, cible: float = PUISSANCE_MIN) -> int:
+    """Le n qui ramene la puissance au-dessus de `cible`, pour un `c` donne.
+    C'est le chiffre utile quand le garde-fou refuse : il dit de combien
+    prolonger, au lieu de dire seulement « pas assez »."""
+    lo, hi = 100.0, 100000.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if puissance(mid, c_null) < cible:
+            lo = mid
+        else:
+            hi = mid
+    return int(hi) + 1
 
 
 def verifier(a) -> int:
@@ -397,38 +432,37 @@ def verifier(a) -> int:
           "  Le nombre de trades ne peut pas etre compte sans evaluer le",
           "  signal ; il ne l'est donc pas ici.", ""]
 
-    # --- Puissance, aux deux facons, confrontee a ce qui fut annonce.
-    c_null = 1.72     # ecart-type du null x sqrt(n), pre-inscription
-    L += ["## Puissance projetee (c = %.2f de la pre-inscription)" % c_null,
-          "  %-8s %-14s %-14s %s" % ("n", "forme fermee", "simulee", "annoncee")]
-    for n in (600, 1000, 1200, 1500):
-        L += ["  %-8d %-14.3f %-14.3f %s"
-              % (n, puissance_forme_fermee(n, c_null),
-                 puissance_simulee(n, c_null),
-                 "%.2f" % PUISSANCE_ANNONCEE[n] if n in PUISSANCE_ANNONCEE else "-")]
-    L += ["  `c` sera RECALCULE sur les donnees du test avant toute lecture ;",
-          "  ces valeurs sont une projection, pas la puissance atteinte."]
-
-    # --- L'ECART AVEC LA TABLE ANNONCEE DOIT SE VOIR, PAS S'EYEBALLER.
-    #     Les deux methodes s'accordent entre elles a 0,005 pres et sont TOUTES
-    #     DEUX sous la table de la pre-inscription, d'environ 0,04. L'ecart est
-    #     donc dans le chiffre annonce, pas dans la methode — et il compte :
-    #     a n=1000 le 0,84 annonce devient 0,80, c'est-a-dire EXACTEMENT le
-    #     plancher sous lequel la pre-inscription interdit de lire.
-    ecarts = [(n, PUISSANCE_ANNONCEE[n] - puissance_forme_fermee(n, c_null))
-              for n in sorted(PUISSANCE_ANNONCEE)]
-    pire = max(ecarts, key=lambda x: abs(x[1]))
-    if abs(pire[1]) > 0.02:
-        L += ["",
-              "  ATTENTION : les deux methodes s'accordent entre elles mais",
-              "  tombent sous la table de la pre-inscription (ecart max %+.3f a"
-              % pire[1],
-              "  n=%d). L'ecart est donc dans le chiffre annonce. Consequence :"
-              % pire[0],
-              "  la marge au-dessus du plancher de %.2f est plus mince que le"
-              % PUISSANCE_MIN,
-              "  document ne le laisse croire — a n=1000 elle est nulle."]
-    L += [""]
+    # --- Puissance. La formule est celle du document, facteur 1,32 compris.
+    #     Ce qui est confronte n'est plus « ma methode contre la sienne » —
+    #     elles coincident — mais les trois valeurs possibles de `c`.
+    L += ["## Puissance projetee (formule de la pre-inscription, 1,32 n compris)",
+          "  %-7s %-14s %-16s %-14s" % ("n", "c=1,72 (doc)", "c=2,125 (mesure)",
+                                        "c=2,42 (crypto)")]
+    for n in (600, 1000, 1200, 1500, 1800):
+        L += ["  %-7d %-14.3f %-16.3f %-14.3f"
+              % (n, puissance(n, C_ANNONCE), puissance(n, C_MESURE),
+                 puissance(n, C_CRYPTO))]
+    L += ["",
+          "  n pour atteindre le plancher de %.2f :" % PUISSANCE_MIN,
+          "    c=1,72  -> %d      c=2,125 -> %d      c=2,42  -> %d"
+          % (n_pour_puissance(C_ANNONCE), n_pour_puissance(C_MESURE),
+             n_pour_puissance(C_CRYPTO)),
+          "",
+          "  LE `c` DU DOCUMENT EST 19 % SOUS CELUI QUE LE SCRIPT GELE MESURE."]
+    L += ["  A n=1200 le garde-fou tient quand meme : %.3f > %.2f."
+          % (puissance(1200, C_MESURE), PUISSANCE_MIN)]
+    L += ["  Mais la marge vaut %.3f, et non les %.3f qu'annonce la table."
+          % (puissance(1200, C_MESURE) - PUISSANCE_MIN,
+             puissance(1200, C_ANNONCE) - PUISSANCE_MIN)]
+    L += ["  Et si `c` derive vers le bloc crypto — ce que la pre-inscription",
+          "  redoute elle-meme pour ce nouvel univers — n=1200 passe SOUS le",
+          "  plancher (%.3f) et il en faudrait %d."
+          % (puissance(1200, C_CRYPTO), n_pour_puissance(C_CRYPTO)),
+          "",
+          "  Rien de tout ceci n'est a trancher : la pre-inscription impose deja",
+          "  de RECALCULER `c` sur les donnees du test et de ne pas lire sous",
+          "  0,80. C'est le garde-fou qui fonctionne, pas une decision a prendre.",
+          ""]
 
     # --- Verdict.
     L += ["## VERDICT"]

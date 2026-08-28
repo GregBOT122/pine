@@ -245,6 +245,90 @@ peut encore l'apprendre avant la lecture.
 
 ---
 
+## Amendement 4 — la table de puissance : le `c` est trop petit de 19 %
+
+### D'abord, ma propre erreur, parce qu'elle vient en premier
+
+`NOTE_APPAREIL_H_TREND_2026-08-28.md` affirmait que la table de puissance du
+document était « haute d'environ 0,04 », recalculée « de deux façons
+indépendantes ». **C'était faux, et les deux façons étaient la même erreur.**
+
+**Et la pré-inscription donne l'écart-type du null deux fois, différemment :**
+
+    §4 (juste au-dessus de la table)   « Écart-type du null : 1,72/√n »
+    §Garde-fou    puissance = Φ( (0,16 − 1,645·c/√(1,32·n)) / (sd_trade/√n) )
+
+J'ai employé celle du §4. La table, elle, est calculée avec celle du §Garde-fou,
+et se reconstruit alors à la virgule près — 0,61 / 0,71 / 0,84 / 0,88 à
+n = 400 / 600 / 1000 / 1200. **Elle n'a jamais eu d'erreur d'arithmétique.**
+
+**Ce point est tranché ici : c'est le §Garde-fou qui fait foi**, parce que son
+facteur est mesuré et celui du §4 est une abréviation qui l'a perdu. Le §4 doit
+se lire `1,72/√(1,32·n)`.
+
+**Le 1,32 est mesuré, pas décoratif.** Un décalage circulaire produit *plus* de
+trades que la série observée, parce que les signaux déplacés se heurtent moins
+au blocage « pas de nouvelle entrée tant qu'on est en position ». Rejeu de la
+calibration gelée le 2026-08-28 : **n observé 1 968, n du null 2 593, rapport
+1,318.** La distribution nulle est la moyenne de 32 % de trades en plus, et son
+écart-type rétrécit d'autant.
+
+**La leçon de méthode, qui vaut plus que le chiffre** : j'ai recalculé une
+formule au lieu de reproduire la table publiée, puis présenté l'accord entre ma
+forme fermée et ma simulation comme une confirmation. Deux méthodes qui
+partagent la même hypothèse fausse s'accordent parfaitement. Le contrôle qui
+tranchait tout — reconstruire les quatre nombres du document — prend trois
+lignes, et je ne l'ai pas fait avant d'écrire que le document avait tort.
+
+### Ce que le rejeu montre en revanche
+
+Le même rejeu reproduit **tout** le reste à la virgule près — null +0,2258,
+edge net +0,1604, PF 1,660, p = 0,0005 — donc ce n'est pas une exécution qui
+aurait dérivé. Et il donne l'écart-type du null : **0,0417 à n = 1 968**. Or
+
+    c = 0,0417 × √(1,32 × 1 968) = **2,125**
+
+**La table emploie `c = 1,72`. Le script gelé en mesure 2,125, soit 19 % de
+plus.** D'où vient le 1,72 n'est pas établi : le §Diversification du même
+document donne « Tout, 17 symboles → 1,86 », qui ne le reproduit pas non plus.
+
+### La table corrigée
+
+| n | c = 1,72 (table du doc) | **c = 2,125 (mesuré)** | c = 2,42 (bloc crypto) |
+|---|---|---|---|
+| 600 | 0,712 | **0,632** | 0,569 |
+| 1000 | 0,841 | **0,781** | 0,730 |
+| 1200 | 0,881 | **0,831** | 0,787 |
+| 1500 | 0,924 | **0,887** | 0,853 |
+| 1800 | 0,952 | **0,925** | 0,899 |
+
+    n nécessaire pour atteindre le plancher de 0,80 :
+      c = 1,72  ->   847        c = 2,125 ->  1071        c = 2,42  ->  1251
+
+### Ce que ça change, et ce que ça ne change pas
+
+**Le seuil `n ≥ 1200` tient.** Avec le `c` mesuré la puissance y vaut 0,831, au-
+dessus du plancher de 0,80. Mais **la marge vaut 0,031, et non les 0,081
+qu'annonce la table** — c'est-à-dire qu'elle est presque trois fois plus mince
+que le document ne le laisse croire.
+
+**Et la dégradation que la pré-inscription redoute elle-même devient
+disqualifiante.** Elle avertit que le nouvel univers, plus chargé en crypto,
+peut pousser `c` vers le 2,42 du bloc homogène. À 2,42, n = 1200 rend **0,787,
+sous le plancher**, et il en faudrait **1 251**.
+
+**Aucune décision n'est requise ici, et c'est le point.** La pré-inscription
+impose déjà de recalculer `c` sur les données du test et de ne pas lire sous
+0,80. Le garde-fou fonctionne : il absorbera cet écart tout seul, en repoussant
+la lecture. Ce qui change est la **projection** — il faut s'attendre à ce que le
+garde-fou morde, et à devoir prolonger au-delà de 1200, plutôt qu'à une lecture
+confortable au seuil nominal.
+
+`recherche/lecture_h_trend.py` calcule désormais les trois colonnes et le `n`
+requis pour chacune, avec la formule du document, facteur 1,32 compris.
+
+---
+
 ## Ce que cet amendement n'autorise pas
 
 - **Retirer un symbole.** Les 12 crypto restent, marge serrée comprise. Les
