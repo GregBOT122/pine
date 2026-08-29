@@ -1,4 +1,4 @@
-# Recalcul de `c` sur l'univers figé — 2026-08-29 15:52 UTC
+# Recalcul de `c` sur l'univers figé — 2026-08-29 16:14 UTC
 
 Fenêtre bornée au **2026-08-26 inclus** ; les barres du test (2026-08-27 et au-delà) n'y entrent pas.
 L'expR observé n'est ni calculé ni rapporté : `c` ne dépend que de la dispersion du null.

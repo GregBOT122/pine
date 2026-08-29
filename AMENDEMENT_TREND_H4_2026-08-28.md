@@ -470,6 +470,22 @@ toujours pas, mais il n'y a plus grand-chose entre lui et le seuil.
 Et le bloc crypto se confirme à **3,631** (contre 2,42 redouté) : stable entre
 les deux fenêtres saines, donc ce n'est pas un artefact de période.
 
+### Contrôle de reproductibilité après les changements d'archivage
+
+La calibration a été **relancée après** la refonte de l'archivage (fetch découpé
+par année, écriture des seules barres neuves, 9 fichiers H1 de plus). Ce n'était
+pas une formalité : si le découpage ou la déduplication avaient perturbé ce que
+`load()` rend, `c` aurait bougé sans que rien d'autre ne le signale.
+
+    les 42 series chargees   n, comptes de signaux, bornes : IDENTIQUES
+    c et sd_null des 6 blocs                              : IDENTIQUES
+    le rapport entier                                     : identique a la
+                                                            ligne d'horodatage pres
+
+Les 9 barres ajoutées entre-temps sont postérieures au 2026-08-26 et tombent
+donc sous la borne de calibration — le résultat *devait* être inchangé, et il
+l'est. **`c = 2,674` tient.**
+
 ---
 
 ## Ce que cet amendement n'autorise pas
