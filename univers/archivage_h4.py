@@ -219,17 +219,61 @@ def archiver_h1(cible: str, barres: list[tuple]) -> tuple[int, int]:
     d = d[~d.index.duplicated(keep="first")].sort_index()
 
     CACHE_H1.mkdir(parents=True, exist_ok=True)
-    nom = "%s_H1_%s_%s.parquet" % (cible, d.index[0].strftime("%Y%m%d"),
-                                   d.index[-1].strftime("%Y%m%d"))
-    chemin = CACHE_H1 / nom
-    deja = len(list(CACHE_H1.glob("%s_H1_*.parquet" % cible)))
-    if chemin.exists():
-        # Deja archive a l'identique aujourd'hui : ne pas reecrire.
-        return len(d), 0
+    total = len(d)
+
+    # --- N'ECRIRE QUE CE QUI EST NEUF. Corrige le 2026-08-29.
+    #
+    #     Le nom de fichier porte la plage couverte, donc sa date de FIN change
+    #     a chaque passage — et un fichier neuf etait ecrit meme quand le
+    #     contenu etait deja archive. Mesure : 84 fichiers H1 avant un passage
+    #     a blanc, 90 apres, sans une seule barre nouvelle. A quatre passages
+    #     par an sur 42 symboles, l'archive doublait pour rien, et `load()`
+    #     concatene TOUS les fichiers avant de dedupliquer.
+    #
+    #     On compare donc aux horodatages deja archives et on n'ecrit que le
+    #     complement. Rien n'est jamais reecrit : c'est toujours du append-only,
+    #     simplement sans le doublon.
+    #     `columns=["close"]` ET NON `columns=[]` : avec une liste vide, pandas
+    #     rend un cadre sans index temporel (un RangeIndex 0..n-1), et la
+    #     comparaison portait alors sur des entiers sans rapport. Le test du
+    #     2026-08-29 l'a attrape : au 3e passage, 20 barres neuves etaient
+    #     declarees « deja connues », le nom de fichier retombait sur celui du
+    #     1er passage, et les 20 barres etaient PERDUES en silence. Lire une
+    #     vraie colonne coute une colonne et garde l'index.
+    #     ET NORMALISER LA RESOLUTION AVANT DE COMPARER. Mesure du 2026-08-29 :
+    #     `pd.to_datetime(ts, unit="s")` rend un index **datetime64[s]**, mais
+    #     l'aller-retour parquet le rend **datetime64[ms]**. `astype("int64")`
+    #     donnait donc des secondes d'un cote et des millisecondes de l'autre —
+    #     un facteur 1000, aucune correspondance, et la deduplication ne mordait
+    #     jamais. Le premier test le voyait comme « rien n'est jamais connu ».
+    def _secondes(idx):
+        return idx.astype("datetime64[s]").astype("int64")
+
+    connus: set[int] = set()
+    for f in CACHE_H1.glob("%s_H1_*.parquet" % cible):
+        try:
+            idx = pd.read_parquet(f, columns=["close"]).index
+            connus.update(_secondes(idx).tolist())
+        except Exception:                                    # noqa: BLE001
+            continue
+
+    neuves = d[~_secondes(d.index).isin(connus)]
+    if neuves.empty:
+        return total, 0
+
+    base = "%s_H1_%s_%s" % (cible, neuves.index[0].strftime("%Y%m%d"),
+                            neuves.index[-1].strftime("%Y%m%d"))
+    chemin = CACHE_H1 / (base + ".parquet")
+    # Une collision de nom ne doit JAMAIS faire abandonner des barres neuves :
+    # deux lots differents peuvent couvrir le meme jour. On suffixe.
+    suffixe = 0
+    while chemin.exists():
+        suffixe += 1
+        chemin = CACHE_H1 / ("%s_%02d.parquet" % (base, suffixe))
     tmp = chemin.with_suffix(".tmp")
-    d.to_parquet(tmp)
+    neuves.to_parquet(tmp)
     tmp.replace(chemin)
-    return len(d), deja + 1
+    return total, len(neuves)
 
 
 def main() -> int:
@@ -295,7 +339,8 @@ def main() -> int:
             sans_h1.append(cible)
 
         lignes.append((cible, nom, total, neuves, n1))
-        print(f"  {cible:10s} {total:6d} barres H4 (+{neuves})   {n1:6d} H1")
+        print(f"  {cible:10s} {total:6d} barres H4 (+{neuves})   "
+              f"{n1:6d} H1 (+{f1})")
 
     if ok_mt5:
         mt5.shutdown()
