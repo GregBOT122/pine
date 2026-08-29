@@ -92,17 +92,52 @@ def table_friction(uni: dict) -> dict:
     return out
 
 
-def preparer(ns, symboles, fric) -> dict:
+def premiere_annee_dense(d, seuil=0.6) -> int | None:
+    """Première année où la série est VRAIMENT au pas annoncé.
+
+    LE PIÈGE, MESURÉ LE 2026-08-29 ET QUI A FAILLI PASSER. En approfondissant
+    l'archive à 2012, `copy_rates_range` a bien rendu des barres H1 pour EURUSD
+    depuis 2012 — mais **260 par an**, soit une par jour ouvré, contre 6 229 en
+    2024. MT5 sert de l'historique ancien ÉCLAIRCI, étiqueté H1 sans l'être.
+
+    Réagrégées en H4, ces barres donnent une série qui a l'air normale : un
+    Donchian 40 et une EMA200 s'y calculent sans erreur, et produisent des
+    trades. Ce ne sont simplement pas les trades de la stratégie testée. Une
+    calibration qui les avale rend un `c` faux sans qu'aucun garde-fou existant
+    ne bronche — mesuré : 2,606 sur 2012-2026 contre 2,4 sur la fenêtre saine.
+
+    On compare donc chaque année à la densité des années récentes, connues
+    pleines. Toute année sous 60 % de cette densité est déclarée creuse.
+    """
+    if len(d) == 0:
+        return None
+    par_an = d.groupby(d.index.year).size()
+    recentes = par_an[(par_an.index >= 2024) & (par_an.index <= 2025)]
+    if recentes.empty:
+        return None
+    seuil_abs = seuil * recentes.median()
+    denses = [int(y) for y in par_an.index if par_an[y] >= seuil_abs and y < 2026]
+    return min(denses) if denses else None
+
+
+def preparer(ns, symboles, fric, debut) -> dict:
     data = {}
+    creux = {}
     for sym in symboles:
         d = ns["load"](sym)
         if d is None or len(d) < 600:
             print("  %-10s ecarte (pas de donnees)" % sym)
             continue
 
+        # --- LE CONTROLE DE DENSITE, avant tout calcul. Voir le docstring
+        #     ci-dessus : c'est le defaut qui ne se voit pas sur les prix.
+        dense_des = premiere_annee_dense(d)
+        if dense_des is not None and debut.year < dense_des:
+            creux[sym] = dense_des
+
         # --- LA BORNE, ET SON CONTROLE. Couper puis VERIFIER : un filtre qu'on
         #     n'a pas verifie est une intention, pas une garantie.
-        d = d[d.index <= FIN_CALIBRATION]
+        d = d[(d.index >= debut) & (d.index <= FIN_CALIBRATION)]
         if len(d) and d.index.max() > FIN_CALIBRATION:
             raise AssertionError("%s : une barre du test a survecu au filtre" % sym)
         if len(d) < 600:
@@ -111,9 +146,30 @@ def preparer(ns, symboles, fric) -> dict:
 
         R, KX = ns["precompute"](d, fric[sym])
         sg = ns["signals"](d)
-        data[sym] = dict(R=R, KX=KX, sig=np.flatnonzero(sg), n=len(d))
-        print("  %-10s n=%5d  signaux=%4d  friction=%.4f%%  jusqu'au %s"
-              % (sym, len(d), int(sg.sum()), fric[sym], d.index.max().date()))
+        data[sym] = dict(R=R, KX=KX, sig=np.flatnonzero(sg), n=len(d),
+                         debut=d.index.min(), fin=d.index.max())
+        print("  %-10s n=%5d  signaux=%4d  friction=%.4f%%  %s -> %s"
+              % (sym, len(d), int(sg.sum()), fric[sym],
+                 d.index.min().date(), d.index.max().date()))
+
+    if creux:
+        plancher = max(creux.values())
+        print()
+        print("REFUS : %d symboles n'ont pas de H1 REELLEMENT horaire sur toute"
+              % len(creux))
+        print("        la fenetre demandee (%s). MT5 sert de l'historique ancien"
+              % debut.date())
+        print("        eclairci — EURUSD : 260 barres/an en 2012 contre 6 229 en 2024.")
+        print("        Reagregees en H4 elles produisent des trades qui ne sont pas")
+        print("        ceux de la strategie testee, sans lever la moindre erreur.")
+        print()
+        for sym in sorted(creux):
+            print("          %-10s dense seulement depuis %d" % (sym, creux[sym]))
+        print()
+        print("        La fenetre la plus longue ou les 42 sont denses commence en")
+        print("        %d. Relancer avec  --depuis %d-01-01" % (plancher, plancher))
+        raise SystemExit(7)
+
     return data
 
 
@@ -171,7 +227,12 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--bloc", default=None, help="ne calibrer qu'un bloc")
     p.add_argument("--sortie", type=Path, default=None)
+    p.add_argument("--depuis", default=None,
+                   help="AAAA-MM-JJ : borne BASSE de la fenetre de calibration. "
+                        "Par defaut, tout ce que l'archive contient.")
     a = p.parse_args()
+    debut_fenetre = (pd.Timestamp(a.depuis) if a.depuis
+                     else pd.Timestamp("1900-01-01"))
 
     if L.empreinte_gelee() != L.EMPREINTE:
         print("REFUS : l'empreinte de la configuration figee ne se recalcule pas.")
@@ -194,7 +255,7 @@ def main() -> int:
 
     ns = L.charger_appareil_gele()
     print("Chargement et precalcul :")
-    tout = preparer(ns, resolus, fric)
+    tout = preparer(ns, resolus, fric, debut_fenetre)
     print()
 
     lots = [("TOUT (42)", tout)]
@@ -222,12 +283,25 @@ def main() -> int:
            "(2026-08-27 et au-delà) n'y entrent pas." % FIN_CALIBRATION.date(),
            "L'expR observé n'est ni calculé ni rapporté : `c` ne dépend que de "
            "la dispersion du null.", "",
-           "| Bloc | k | n obs. | n null | ratio mesuré | sd du null | **c** |",
-           "|---|---|---|---|---|---|---|"]
+           "| Bloc | k | n obs. | part | n null | ratio mesuré | sd du null | **c** |",
+           "|---|---|---|---|---|---|---|---|"]
+    total_obs = next((r["n_obs"] for r in res
+                      if r["etiquette"].startswith("TOUT")), 0) or 1
     for r in res:
-        out.append("| %s | %d | %d | %.0f | %.3f | %.5f | **%.3f** |"
-                   % (r["etiquette"], r["k"], r["n_obs"], r["n_null"],
+        part = ("—" if r["etiquette"].startswith("TOUT")
+                else "%.1f %%" % (100.0 * r["n_obs"] / total_obs))
+        out.append("| %s | %d | %d | %s | %.0f | %.3f | %.5f | **%.3f** |"
+                   % (r["etiquette"], r["k"], r["n_obs"], part, r["n_null"],
                       r["ratio"], r["sd"], r["c"]))
+    out += ["",
+            "**La colonne `part` est celle qui décide de la représentativité.** "
+            "Une fenêtre longue ne vaut pas mieux si elle change la composition "
+            "du panier : les séries n'ont pas le même point de départ chez le "
+            "courtier, donc allonger la fenêtre dilue les symboles récents. Or "
+            "le test, lui, aura les 42 actifs simultanément, avec la crypto en "
+            "tête du volume de barres (2 192 H4/an contre 500 pour une action "
+            "US). La fenêtre à retenir est celle dont la composition ressemble "
+            "à celle du test, pas la plus longue."]
     out += ["",
             "`c = sd_null x racine(1,32 n_obs)`, la convention de la formule du "
             "document. Le **ratio mesuré** est le vrai `n_null / n_obs` : la "

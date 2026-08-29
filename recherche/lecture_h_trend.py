@@ -170,12 +170,23 @@ C_ANNONCE, C_MESURE, C_CRYPTO = 1.72, 2.125, 2.42
 # au 2026-08-26 : aucune barre du test n'y entre. 42 symboles, friction de
 # l'amendement 1, graine et MINSHIFT du fichier gele.
 #
-#     TOUT (42)  2,396      FX 1,989   indices 1,880   matieres 1,895
-#                           crypto 3,674              actions 2,249
+#     fenetre 2024-2026   c = 2,396      (premiere mesure, archive d'alors)
+#     fenetre 2022-2026   c = 2,674      <- RETENU, la plus longue VALIDE
+#                         FX 1,890  indices 1,797  matieres 2,041
+#                         crypto 3,631            actions 2,326
 #
-# Le bloc crypto est a 3,674 la ou la pre-inscription redoutait 2,42 : sa
-# crainte etait juste dans le principe et sous-estimee de 52 %.
-C_UNIVERS = 2.396
+# POURQUOI PAS PLUS LONG. L'archive a ete approfondie a 2012 le 2026-08-29, mais
+# **MT5 sert de l'historique ancien ECLAIRCI** : EURUSD rend 260 barres H1/an en
+# 2012 contre 6 229 en 2024 — du journalier etiquete H1. Reagrege en H4, ca
+# produit des trades qui ne sont pas ceux de la strategie, sans lever d'erreur.
+# La fenetre 2012-2026 rend 2,606 ; elle est simplement invalide, pas
+# conservatrice. Les 42 ne sont tous denses qu'a partir de **2022**.
+# `calibrer_c_42.py` REFUSE desormais (code 7) toute fenetre contenant des
+# annees creuses et nomme la bonne borne.
+#
+# Le bloc crypto est a 3,631 la ou la pre-inscription redoutait 2,42 : sa
+# crainte etait juste dans le principe et sous-estimee de 50 %.
+C_UNIVERS = 2.674
 
 # Rapport n_null/n_obs MESURE sur les 42 : 1,259, la ou la formule fige 1,32.
 # Le 1,32 vient des 17 symboles d'origine (ou il valait 1,318). L'ecart est
@@ -455,19 +466,19 @@ def verifier(a) -> int:
     #     elles coincident — mais les trois valeurs possibles de `c`.
     L += ["## Puissance projetee (formule de la pre-inscription, 1,32 n compris)",
           "  %-7s %-13s %-15s %-16s" % ("n", "c=1,72 (doc)", "c=2,125 (17 sym.)",
-                                        "c=2,396 (42 sym.)")]
+                                        "c=2,674 (42 sym.)")]
     for n in (1000, 1200, 1500, 1800):
         L += ["  %-7d %-13.3f %-15.3f %-16.3f"
               % (n, puissance(n, C_ANNONCE), puissance(n, C_MESURE),
                  puissance(n, C_UNIVERS))]
     L += ["",
           "  n pour atteindre le plancher de %.2f :" % PUISSANCE_MIN,
-          "    c=1,72 -> %d      c=2,125 -> %d      c=2,396 -> %d"
+          "    c=1,72 -> %d      c=2,125 -> %d      c=2,674 -> %d"
           % (n_pour_puissance(C_ANNONCE), n_pour_puissance(C_MESURE),
              n_pour_puissance(C_UNIVERS)),
           ""]
     L += ["  LE SEUIL PRE-ENREGISTRE n=1200 NE SUFFIT PAS. Recalcule sur les 42",
-          "  symboles reels (2026-08-29), `c` vaut 2,396 et non 1,72 : la",
+          "  symboles reels sur 2022-2026, `c` vaut 2,674 et non 1,72 : la",
           "  puissance a n=1200 tombe a %.3f, SOUS le plancher de %.2f. Il en"
           % (puissance(1200, C_UNIVERS), PUISSANCE_MIN),
           "  faut %d." % n_pour_puissance(C_UNIVERS),
@@ -480,10 +491,10 @@ def verifier(a) -> int:
           "  puissance de %.3f. Le garde-fou ne mordra donc pas."
           % puissance(1570, C_UNIVERS),
           "",
-          "  Le bloc crypto seul est mesure a 3,674, la ou la pre-inscription",
-          "  redoutait 2,42 : sa crainte etait juste, et sous-estimee de 52 %.",
+          "  Le bloc crypto seul est mesure a 3,631, la ou la pre-inscription",
+          "  redoutait 2,42 : sa crainte etait juste, et sous-estimee de 50 %.",
           "",
-          "  Le 2,396 reste une PROJECTION : mesure sur 2024-2026, pas sur la",
+          "  Le 2,674 reste une PROJECTION : mesure sur 2022-2026, pas sur la",
           "  fenetre du test. La pre-inscription impose de recalculer `c` sur",
           "  les donnees du test et de ne pas lire sous 0,80 — c'est ce",
           "  garde-fou qui tranchera, pas ce chiffre.",

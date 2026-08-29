@@ -388,6 +388,90 @@ et non de 1,72, c'est-à-dire d'un chiffre mesuré sur le bon univers.
 
 ---
 
+## Amendement 4 ter — la fenêtre de calibration, et un piège dans les données (2026-08-29)
+
+L'archive H1 a été approfondie de 2024-01-01 à 2012-01-01 pour recalibrer `c`
+sur le plus d'historique possible. **Deux choses en sont sorties, et la seconde
+invalide la première.**
+
+### Le fetch MT5 rendait zéro barre H1, en silence
+
+Au premier essai, `--depuis 2012-01-01` a rendu **0 barre H1** sur tous les
+symboles MT5 — alors que la même plage en H4 en rendait des milliers.
+`copy_rates_range` plafonne le nombre de barres qu'il sert d'un coup, et le
+plafond mord d'autant plus vite que le pas est fin. **Il ne lève pas d'erreur :
+il rend `None`.** Sans le compteur « barres H1 » ajouté au rapport, l'archive se
+serait remplie de rien.
+
+Le cache d'origine de `xaubot` portait déjà la réponse dans ses noms de fichiers
+— `AAPL_H1_20120101_20130101.parquet`, découpé par année. Le fetch MT5 l'est
+maintenant aussi. Vérification : AAPL rend ses 9 655 barres depuis 2021-03-08,
+exactement ce que `univers_resolu.json` déclare.
+
+### Et l'historique ancien de MT5 n'est PAS horaire
+
+    EURUSD, barres H1 par an dans l'archive approfondie
+      2012 : 296   2013 : 259   2014 : 260   2015 : 259   2016 : 259
+      ...
+      2024 : 6 241   2025 : 6 217
+
+**260 barres par an, c'est une par jour ouvré.** MT5 sert de l'historique ancien
+éclairci, étiqueté H1 sans l'être. Réagrégé en H4, ça produit une série qui a
+l'air normale : le Donchian 40 et l'EMA200 s'y calculent sans erreur et sortent
+des trades. Ce ne sont simplement pas les trades de la stratégie testée.
+
+**C'est le genre de défaut qui ne se voit pas sur les prix, et qu'aucun
+garde-fou existant n'aurait attrapé.** `calibrer_c_42.py` compare désormais
+chaque année à la densité des années récentes et **refuse de tourner** (code 7)
+sur une fenêtre contenant des années creuses, en nommant la bonne borne.
+
+**Les 42 symboles ne sont tous denses qu'à partir de 2022** — MT5 densifie en
+2020 (FX, indices, métaux) puis 2021-2022 (actions US, NATGAS, WTI, DE40) ;
+Binance est dense dès la cotation.
+
+### Les trois fenêtres, et celle qu'on retient
+
+| Fenêtre | Validité | n obs. | part crypto | **c** | n pour 0,80 |
+|---|---|---|---|---|---|
+| 2012-2026 | **INVALIDE** (années creuses) | 5 552 | 35,7 % | 2,606 | 1 371 |
+| **2022-2026** | **valide, la plus longue** | **3 285** | **34,8 %** | **2,674** | **1 416** |
+| 2024-2026 | valide, plus courte | 1 853 | 34,5 % | 2,396 | 1 235 |
+
+**`c = 2,674` est retenu** : la fenêtre la plus longue où les 42 séries sont
+réellement au pas H1.
+
+**Ma crainte sur la composition était infondée, et je l'avais énoncée avant de
+mesurer.** J'avais annoncé qu'une fenêtre longue diluerait la crypto et
+rendrait un `c` flatteur. La part crypto est de **34,5 à 35,7 % dans les trois
+fenêtres** — elle ne bouge pas. La crypto produit tellement plus de barres par
+an que l'allongement ne la dilue pas.
+
+**Et la contamination ne gonflait pas `c`, elle le baissait** : la fenêtre
+invalide rend 2,606, la fenêtre saine 2,674. J'avais écrit l'inverse avant de
+l'avoir mesuré. Une fenêtre contaminée n'est pas « conservatrice » : elle est
+sans rapport.
+
+### Ce que ça change
+
+Avec `c = 2,674`, la puissance à `n = 1200` tombe à **0,745**, et il en faut
+**1 416** pour atteindre le plancher de 0,80 — contre 847 selon la table du
+document.
+
+    n        c=1,72   c=2,125   c=2,674
+    1200     0,881    0,831     0,745
+    1500     0,924    0,887     0,818
+    1570     0,932    0,868     0,832
+
+**L'amendement 2 continue de couvrir le manque, mais de moins loin.** Sa date
+(~2028-11, `n ≈ 1 570`) donne une puissance de **0,832** — marge +0,032 sur le
+plancher, contre +0,068 avec le `c` de la fenêtre courte. Le garde-fou ne mord
+toujours pas, mais il n'y a plus grand-chose entre lui et le seuil.
+
+Et le bloc crypto se confirme à **3,631** (contre 2,42 redouté) : stable entre
+les deux fenêtres saines, donc ce n'est pas un artefact de période.
+
+---
+
 ## Ce que cet amendement n'autorise pas
 
 - **Retirer un symbole.** Les 12 crypto restent, marge serrée comprise. Les

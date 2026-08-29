@@ -84,6 +84,20 @@ CACHE_H1 = Path(r"C:\Users\grego\dev\Daytrading\donnees-h1")
 # d'un peu avant, pour que le calcul d'ATR et d'EMA200 ait son amorce.
 DEPUIS = datetime(2024, 1, 1, tzinfo=timezone.utc)
 
+# --- `--depuis` ajoute le 2026-08-29 ------------------------------------------
+# L'archivage trimestriel n'a besoin que de protéger la fenêtre du test, d'où
+# le 2024-01-01 : remonter plus loin à chaque passage alourdirait la tâche sans
+# rien protéger de plus. Mais la CALIBRATION de `c`, elle, gagne à voir le plus
+# d'historique possible. `--depuis` permet un approfondissement ponctuel sans
+# changer ce que fait la tâche planifiée.
+#
+# Plafond réel par source : Binance ne sert qu'une fenêtre GLISSANTE de 3 ans
+# (mesurée : 26 280 barres H1, début qui avance d'un jour par jour), donc
+# demander 2015 pour une paire crypto rendra quand même ~2023-08. MT5 remonte
+# beaucoup plus loin (EURUSD 1997). L'archive deviendra donc déséquilibrée —
+# et c'est une propriété à connaître, pas un défaut à cacher.
+_DEPUIS_DEFAUT = DEPUIS
+
 
 def _verifier_emplacement() -> None:
     for parent in [ARCHIVE, *ARCHIVE.parents]:
@@ -138,13 +152,42 @@ def binance_h4(sym: str, interval: str = "4h") -> list[tuple]:
 
 
 def mt5_h4(mt5, nom: str, tf=None) -> list[tuple]:
+    """MT5, DÉCOUPÉ PAR ANNÉE — sinon les longues plages rendent zéro barre.
+
+    Mesuré le 2026-08-29 : avec `--depuis 2012-01-01`, `copy_rates_range` en H1
+    rend **0 barre** sur AAPL et AMZN alors que la même plage en H4 en rend des
+    milliers. Le terminal plafonne le nombre de barres qu'il sert d'un coup, et
+    ce plafond mord d'autant plus vite que le pas de temps est fin. Il ne lève
+    pas d'erreur : il rend `None`, ce qui devenait une liste vide, ce qui
+    devenait « symbole sans H1 ».
+
+    Le cache d'origine de xaubot portait déjà la réponse dans ses noms de
+    fichiers — `AAPL_H1_20120101_20130101.parquet` : découpé par année. On fait
+    pareil. Une requête vide sur une année donnée (titre pas encore listé) est
+    normale et n'interrompt rien.
+    """
     mt5.symbol_select(nom, True)
-    r = mt5.copy_rates_range(nom, tf if tf is not None else mt5.TIMEFRAME_H4,
-                             DEPUIS, datetime.now(timezone.utc))
-    if r is None:
-        return []
-    return [(int(x["time"]), x["open"], x["high"], x["low"], x["close"],
-             x["tick_volume"]) for x in r]
+    tf = tf if tf is not None else mt5.TIMEFRAME_H4
+    fin = datetime.now(timezone.utc)
+    out: list[tuple] = []
+    borne = DEPUIS
+    while borne < fin:
+        suivant = min(borne.replace(year=borne.year + 1), fin)
+        r = mt5.copy_rates_range(nom, tf, borne, suivant)
+        if r is not None:
+            out += [(int(x["time"]), x["open"], x["high"], x["low"], x["close"],
+                     x["tick_volume"]) for x in r]
+        borne = suivant
+    # Les tranches se recouvrent d'une barre a leur jointure ; `fusionner` et
+    # `archiver_h1` dedupliquent par horodatage, mais on le fait deja ici pour
+    # que le compte imprime soit le vrai.
+    vus = set()
+    unique = []
+    for b in out:
+        if b[0] not in vus:
+            vus.add(b[0])
+            unique.append(b)
+    return unique
 
 
 def archiver_h1(cible: str, barres: list[tuple]) -> tuple[int, int]:
@@ -193,7 +236,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--sortie", type=Path, default=None,
                     help="rapport markdown (defaut : RAPPORT_ARCHIVAGE.md ici)")
+    ap.add_argument("--depuis", default=None,
+                    help="AAAA-MM-JJ : remonter plus loin que le defaut "
+                         "(approfondissement ponctuel, cf. commentaire DEPUIS)")
     a = ap.parse_args()
+
+    if a.depuis:
+        global DEPUIS
+        DEPUIS = datetime.strptime(a.depuis, "%Y-%m-%d").replace(
+            tzinfo=timezone.utc)
+        print("Approfondissement ponctuel : depuis %s (defaut %s)"
+              % (DEPUIS.date(), _DEPUIS_DEFAUT.date()))
 
     _verifier_emplacement()
     if not UNIVERS.exists():
