@@ -165,6 +165,24 @@ QUANTILE_SPREAD = "p90"
 #       redoute explicitement pour le nouvel univers.
 C_ANNONCE, C_MESURE, C_CRYPTO = 1.72, 2.125, 2.42
 
+# --- `c` RECALCULE SUR L'UNIVERS REEL, le 2026-08-29 -------------------------
+# `calibrer_c_42.py`, rapport `CALIBRATION_C_42_2026-08-29.md`. Fenetre bornee
+# au 2026-08-26 : aucune barre du test n'y entre. 42 symboles, friction de
+# l'amendement 1, graine et MINSHIFT du fichier gele.
+#
+#     TOUT (42)  2,396      FX 1,989   indices 1,880   matieres 1,895
+#                           crypto 3,674              actions 2,249
+#
+# Le bloc crypto est a 3,674 la ou la pre-inscription redoutait 2,42 : sa
+# crainte etait juste dans le principe et sous-estimee de 52 %.
+C_UNIVERS = 2.396
+
+# Rapport n_null/n_obs MESURE sur les 42 : 1,259, la ou la formule fige 1,32.
+# Le 1,32 vient des 17 symboles d'origine (ou il valait 1,318). L'ecart est
+# absorbe par la convention `c = sd x racine(1,32 n_obs)`, qui rend la formule
+# exacte au point de calibration quel que soit le rapport reel.
+RATIO_MESURE_42 = 1.259
+
 # Codes de sortie, distincts pour qu'un refus ne passe pas pour un resultat.
 OK, BLOQUE, EMPREINTE_CASSEE, TROP_TOT, SOUS_PUISSANT = 0, 3, 4, 5, 6
 
@@ -436,32 +454,39 @@ def verifier(a) -> int:
     #     Ce qui est confronte n'est plus « ma methode contre la sienne » —
     #     elles coincident — mais les trois valeurs possibles de `c`.
     L += ["## Puissance projetee (formule de la pre-inscription, 1,32 n compris)",
-          "  %-7s %-14s %-16s %-14s" % ("n", "c=1,72 (doc)", "c=2,125 (mesure)",
-                                        "c=2,42 (crypto)")]
-    for n in (600, 1000, 1200, 1500, 1800):
-        L += ["  %-7d %-14.3f %-16.3f %-14.3f"
+          "  %-7s %-13s %-15s %-16s" % ("n", "c=1,72 (doc)", "c=2,125 (17 sym.)",
+                                        "c=2,396 (42 sym.)")]
+    for n in (1000, 1200, 1500, 1800):
+        L += ["  %-7d %-13.3f %-15.3f %-16.3f"
               % (n, puissance(n, C_ANNONCE), puissance(n, C_MESURE),
-                 puissance(n, C_CRYPTO))]
+                 puissance(n, C_UNIVERS))]
     L += ["",
           "  n pour atteindre le plancher de %.2f :" % PUISSANCE_MIN,
-          "    c=1,72  -> %d      c=2,125 -> %d      c=2,42  -> %d"
+          "    c=1,72 -> %d      c=2,125 -> %d      c=2,396 -> %d"
           % (n_pour_puissance(C_ANNONCE), n_pour_puissance(C_MESURE),
-             n_pour_puissance(C_CRYPTO)),
+             n_pour_puissance(C_UNIVERS)),
+          ""]
+    L += ["  LE SEUIL PRE-ENREGISTRE n=1200 NE SUFFIT PAS. Recalcule sur les 42",
+          "  symboles reels (2026-08-29), `c` vaut 2,396 et non 1,72 : la",
+          "  puissance a n=1200 tombe a %.3f, SOUS le plancher de %.2f. Il en"
+          % (puissance(1200, C_UNIVERS), PUISSANCE_MIN),
+          "  faut %d." % n_pour_puissance(C_UNIVERS),
           "",
-          "  LE `c` DU DOCUMENT EST 19 % SOUS CELUI QUE LE SCRIPT GELE MESURE."]
-    L += ["  A n=1200 le garde-fou tient quand meme : %.3f > %.2f."
-          % (puissance(1200, C_MESURE), PUISSANCE_MIN)]
-    L += ["  Mais la marge vaut %.3f, et non les %.3f qu'annonce la table."
-          % (puissance(1200, C_MESURE) - PUISSANCE_MIN,
-             puissance(1200, C_ANNONCE) - PUISSANCE_MIN)]
-    L += ["  Et si `c` derive vers le bloc crypto — ce que la pre-inscription",
-          "  redoute elle-meme pour ce nouvel univers — n=1200 passe SOUS le",
-          "  plancher (%.3f) et il en faudrait %d."
-          % (puissance(1200, C_CRYPTO), n_pour_puissance(C_CRYPTO)),
+          "  MAIS L'AMENDEMENT 2 A DEJA ABSORBE CE MANQUE, sans l'avoir cherche.",
+          "  Il exige %d decalages distincts, donc ~%d barres sur la serie la"
+          % (DECALAGES_MIN, 2 * 500 + DECALAGES_MIN),
+          "  plus courte : la lecture ne peut pas avoir lieu avant ~2028-11, ou",
+          "  la cadence projetee (714 trades/an) donne n ~ 1570 — soit une",
+          "  puissance de %.3f. Le garde-fou ne mordra donc pas."
+          % puissance(1570, C_UNIVERS),
           "",
-          "  Rien de tout ceci n'est a trancher : la pre-inscription impose deja",
-          "  de RECALCULER `c` sur les donnees du test et de ne pas lire sous",
-          "  0,80. C'est le garde-fou qui fonctionne, pas une decision a prendre.",
+          "  Le bloc crypto seul est mesure a 3,674, la ou la pre-inscription",
+          "  redoutait 2,42 : sa crainte etait juste, et sous-estimee de 52 %.",
+          "",
+          "  Le 2,396 reste une PROJECTION : mesure sur 2024-2026, pas sur la",
+          "  fenetre du test. La pre-inscription impose de recalculer `c` sur",
+          "  les donnees du test et de ne pas lire sous 0,80 — c'est ce",
+          "  garde-fou qui tranchera, pas ce chiffre.",
           ""]
 
     # --- Verdict.

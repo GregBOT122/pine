@@ -329,6 +329,65 @@ requis pour chacune, avec la formule du document, facteur 1,32 compris.
 
 ---
 
+## Amendement 4 bis — `c` recalculé sur les 42 symboles (2026-08-29)
+
+`recherche/calibrer_c_42.py`, rapport `recherche/CALIBRATION_C_42_2026-08-29.md`.
+Fenêtre **bornée au 2026-08-26 inclus** : aucune barre du test n'y entre, et le
+script refuse de tourner si une seule survit au filtre. Friction de l'amendement 1,
+`MINSHIFT` et graine du fichier gelé. **L'expR observé n'est ni calculé ni
+rapporté** — `c` ne dépend que de la dispersion du null, et sortir un rendement
+in-sample de plus ne servirait qu'à créer une tentation.
+
+| Bloc | k | n obs. | n null | ratio mesuré | sd du null | **c** |
+|---|---|---|---|---|---|---|
+| **TOUT** | **42** | **1 853** | **2 333** | **1,259** | **0,04845** | **2,396** |
+| FX | 11 | 541 | 657 | 1,215 | 0,07444 | 1,989 |
+| indices | 7 | 354 | 475 | 1,341 | 0,08697 | 1,880 |
+| matières | 4 | 197 | 259 | 1,316 | 0,11753 | 1,895 |
+| crypto | 12 | 639 | 766 | 1,199 | 0,12649 | **3,674** |
+| actions | 8 | 122 | 166 | 1,362 | 0,17720 | 2,249 |
+
+### Trois choses en sortent
+
+**1. Le seuil pré-enregistré `n = 1200` ne suffit pas.** Avec `c = 2,396` la
+puissance y vaut **0,791 — sous le plancher de 0,80**. Il en faut **1 235**.
+
+| n | c = 1,72 (table) | c = 2,125 (17 sym.) | **c = 2,396 (42 sym.)** |
+|---|---|---|---|
+| 1000 | 0,841 | 0,781 | **0,734** |
+| 1200 | 0,881 | 0,831 | **0,791** |
+| 1500 | 0,924 | 0,887 | **0,856** |
+| 1800 | 0,952 | 0,925 | **0,901** |
+
+**2. L'amendement 2 a déjà absorbé ce manque, sans l'avoir cherché.** Ses 99
+décalages distincts imposent ~1 099 barres sur la série la plus courte, donc une
+lecture pas avant **~2028-11**, où la cadence projetée (714 trades/an) donne
+**n ≈ 1 570** — puissance **0,868**. Le garde-fou de puissance ne mordra donc
+pas. Deux contraintes posées séparément, pour des raisons sans rapport, et la
+plus exigeante couvre l'autre.
+
+**3. La crainte du document sur le bloc crypto était juste, et sous-estimée de
+52 %.** Il redoutait `c = 2,42` pour un bloc homogène ; mesuré, **3,674**. C'est
+le seul bloc au-dessus de la moyenne — FX, indices, matières et actions tiennent
+entre 1,88 et 2,25. La règle « élargir en mélangeant, pas en empilant des
+altcoins » est confirmée par la mesure.
+
+### Deux réserves, qui font partie du résultat
+
+**Le ratio `n_null/n_obs` mesuré sur les 42 vaut 1,259**, là où la formule fige
+1,32 — valeur relevée sur les 17 d'origine (où elle valait 1,318). L'écart est
+absorbé par la convention `c = sd_null × √(1,32·n_obs)`, qui rend la formule
+exacte au point de calibration quel que soit le rapport réel. Il est rapporté
+plutôt que dissimulé.
+
+**Le 2,396 reste une projection.** Il est mesuré sur 2024-2026 — la fenêtre
+qu'autorise l'archive H1 — et non sur celle du test. La pré-inscription impose
+de recalculer `c` sur les données du test avant de lire : c'est ce recalcul-là
+qui décidera, pas celui-ci. Ce qui change ici est qu'on part désormais de 2,396
+et non de 1,72, c'est-à-dire d'un chiffre mesuré sur le bon univers.
+
+---
+
 ## Ce que cet amendement n'autorise pas
 
 - **Retirer un symbole.** Les 12 crypto restent, marge serrée comprise. Les
