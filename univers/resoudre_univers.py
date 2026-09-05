@@ -586,6 +586,27 @@ def main():
                "specs": specs, "spreads": sp}
         gel["sha256_univers"] = hashlib.sha256(
             json.dumps(resolus, sort_keys=True).encode()).hexdigest()
+
+        # --- EMPREINTE DES SPREADS. Ajoutée le 2026-09-04.
+        #
+        # `sha256_univers` ne couvre que `resolus` : la LISTE de symboles est
+        # gelée, et c'est ce que `lecture_h_trend` vérifie contre sa constante
+        # `SHA_UNIVERS`. Mais la contrainte de friction de H_TREND — « 13
+        # symboles sur 42 sont sous 3× au p90 » — se calcule sur `spreads`, que
+        # cette tâche RÉÉCRIT toutes les 4 heures. Rien ne nommait donc le jeu
+        # de spreads qui avait produit un verdict de friction donné.
+        #
+        # ELLE NE FIGE PAS, ELLE IDENTIFIE, et la distinction est le tout.
+        # Plier les spreads dans `sha256_univers` ferait échouer le contrôle de
+        # gel à chaque passage — et ce serait faux : la friction est une
+        # propriété vivante du marché, et la règle 12 interdit de transporter
+        # une conclusion de coût d'une époque à l'autre. La pré-inscription le
+        # dit elle-même, « dans le régime de volatilité actuel ».
+        #
+        # Cette empreinte-ci CHANGE quand les spreads changent, et c'est son
+        # travail : elle permet à un verdict de friction de citer ses entrées.
+        gel["sha256_spreads"] = hashlib.sha256(
+            json.dumps(sp, sort_keys=True).encode()).hexdigest()
         (ICI / "univers_resolu.json").write_text(
             json.dumps(gel, indent=2, ensure_ascii=False, sort_keys=True),
             encoding="utf-8")

@@ -363,8 +363,33 @@ def verifier(a) -> int:
             "%d symboles n'ont pas de spread mesure dans univers_resolu.json. "
             "La table de friction de l'amendement 1 ne peut pas etre construite "
             "pour eux." % len(sans))
-    L += ["  La valeur definitive sera RECALCULEE a la lecture sur les spreads",
+    # L'EMPREINTE DES SPREADS, ajoutee le 2026-09-04.
+    #
+    # `sha256_univers` scelle la LISTE de symboles et rien d'autre. La table
+    # ci-dessus, elle, se calcule sur `spreads`, que la tache `spreads-sessions`
+    # reecrit toutes les 4 heures. Un verdict de friction rapporte sans cette
+    # empreinte ne dit pas de quel jeu de spreads il sort, et n'est donc pas
+    # reproductible -- meme quand l'univers, lui, n'a pas bouge.
+    #
+    # Elle CHANGE quand les spreads changent : c'est voulu. Ce n'est pas un
+    # second gel, c'est une carte d'identite.
+    sha_sp = uni.get("sha256_spreads", "")
+    L += ["  spreads : sha256 %s  (n median %d mesures/symbole)"
+          % (sha_sp[:16] + "..." if sha_sp else "ABSENTE",
+             int(sorted(m.get("n", 0) for m in spreads.values())[len(spreads) // 2])
+             if spreads else 0),
+          "  genere le %s. Cette empreinte n'est PAS un gel : les spreads sont"
+          % uni.get("genere_utc", "?"),
+          "  reechantillonnes toutes les 4 h, et la regle 12 interdit de",
+          "  transporter une conclusion de cout d'une epoque a l'autre. Elle",
+          "  nomme les entrees du verdict ci-dessus, pour qu'il soit rejouable.",
+          "  La valeur definitive sera RECALCULEE a la lecture sur les spreads",
           "  de la fenetre ; celle-ci est l'instantane de reference.", ""]
+    if not sha_sp:
+        blocages.append(
+            "univers_resolu.json ne porte pas `sha256_spreads` : le verdict de "
+            "friction ne peut pas citer le jeu de spreads dont il sort. "
+            "Relancer resoudre_univers.py.")
 
     # --- AMENDEMENT 3 : l'archivage doit stocker du H1 dans le cache, parce
     #     que c'est ce que `load()` reagrege. Les CSV H4 du broker ne sont pas
