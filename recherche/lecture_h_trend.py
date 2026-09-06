@@ -102,11 +102,12 @@ couvertures. Il peut donc tourner autant de fois qu'on veut, aujourd'hui compris
 from __future__ import annotations
 
 import argparse
+import calendar
 import csv
 import hashlib
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -151,6 +152,22 @@ PUISSANCE_ANNONCEE = {600: 0.71, 1000: 0.84, 1200: 0.88}
 # decide, pas la resolution de l'instrument.
 DECALAGES_MIN = 99
 PLANCHER_P_VISE = 0.01
+
+# --- CORRECTIF DU 2026-09-06 : la cadence se mesure sur les ANNEES DENSES ----
+# Meme regle et meme seuil que `calibrer_c_42.premiere_annee_dense`, dont le
+# docstring porte la mesure : MT5 sert de l'historique ancien ECLAIRCI, une
+# barre par jour ouvre etiquetee H1. Toute annee sous 60 % de la densite des
+# annees de reference est declaree creuse.
+#
+# Les deux instruments doivent donner le MEME verdict de densite sur la meme
+# serie : deux regles de densite qui divergent sont exactement ce que
+# `tradingbott/confrontation.py` cherche.
+SEUIL_DENSITE = 0.6
+ANNEES_REFERENCE_DENSE = (2024, 2025)
+# Cadence pre-inscrite, §5 bis : 22x18,9 + 12x20,3 + 8x6,8 trades longs/an.
+# Recopiee du document, pas remesuree -- la remesurer demanderait d'evaluer le
+# signal, donc d'ouvrir la relation testee.
+CADENCE_TRADES_AN = 714
 # Le p90 et non la mediane : une confirmation doit survivre aux mauvais jours.
 QUANTILE_SPREAD = "p90"
 
@@ -196,6 +213,7 @@ RATIO_MESURE_42 = 1.259
 
 # Codes de sortie, distincts pour qu'un refus ne passe pas pour un resultat.
 OK, BLOQUE, EMPREINTE_CASSEE, TROP_TOT, SOUS_PUISSANT = 0, 3, 4, 5, 6
+DECALAGES_INSUFFISANTS = 8
 
 
 def empreinte_gelee() -> str:
@@ -249,6 +267,124 @@ def lire_h4(symbole: str):
     a = np.argsort(ts)
     return (np.array(ts)[a], np.array(o)[a], np.array(h)[a],
             np.array(l)[a], np.array(c)[a])
+
+
+def cadence_denses(ts):
+    """Barres par an sur les seules annees DENSES et COMPLETES.
+
+    CORRECTIF DU 2026-09-06, ET LE DEFAUT QU'IL REPARE. Ce module calculait la
+    cadence par `len(ts) / span_total`. NVDA remonte au 2012-01-03 quand les
+    sept autres actions US demarrent en 2021, et ses vieilles annees sont
+    ECLAIRCIES -- 2020 : 253 barres, 2021 : 252, soit une par jour ouvre, contre
+    462 a 504 de 2022 a 2025. Le quotient rendait donc **328 barres/an** pour
+    une serie qui en fait ~500, et NVDA sortait comme « la serie la plus
+    courte » de l'univers alors qu'elle est dans la moyenne.
+
+    C'est le piege nomme par `AMENDEMENT_TREND_H4_2026-08-28.md` §4 ter, contre
+    lequel `calibrer_c_42.py` a ete durci (code 7) -- reproduit ici par
+    l'instrument suivant. On reprend donc sa regle plutot que d'en ecrire une
+    seconde.
+
+    LA MEDIANE ET NON LA MOYENNE : la premiere annee d'une cotation est dense
+    mais incomplete (META 2021 : 431 barres depuis le 25 fevrier). La moyenne
+    s'y laisse tirer vers le bas, la mediane non.
+
+    DEUX RAISONS D'ECARTER UNE ANNEE, ET ELLES NE DISENT PAS LA MEME CHOSE.
+    Une annee peut manquer de barres parce que la serie n'y a vecu qu'une
+    partie de l'annee (PARTIELLE, normal : Fusion cote AMZN a partir du 15 mars
+    2021), ou parce que la donnee manque alors qu'elle devrait etre la
+    (ECLAIRCIE : le defaut de MT5). Les confondre ferait crier l'instrument sur
+    des series saines, et une alerte qui crie a tort finit par etre ignoree.
+
+    LA DISTINCTION SE FAIT AU PRORATA, PAS A LA POSITION. Ma premiere version
+    classait « partielle » toute annee de bord -- et elle etiquetait ainsi
+    NVDA 2012, qui est en realite eclaircie ET en bord. Une regle de position
+    minimise le defaut quand les deux causes coincident, c'est-a-dire qu'elle
+    se trompe vers le SILENCE. On compare donc chaque annee de bord a ce que sa
+    fraction d'annee reellement couverte laisse attendre.
+
+    Rend `(barres_par_an, {annee: 'partielle'|'eclaircie'})`. `barres_par_an`
+    vaut None si aucune annee dense complete n'existe -- l'appelant doit alors
+    se taire, pas deviner.
+    """
+    if len(ts) == 0:
+        return None, {}
+    annees = np.asarray(ts, dtype="datetime64[s]").astype("datetime64[Y]"
+                                                          ).astype(int) + 1970
+    vals, cnt = np.unique(annees, return_counts=True)
+    par_an = dict(zip(vals.tolist(), cnt.tolist()))
+    ref = [par_an[y] for y in ANNEES_REFERENCE_DENSE if y in par_an]
+    if not ref:
+        return None, {}
+    seuil_abs = SEUIL_DENSITE * float(np.median(ref))
+    courante = datetime.now(timezone.utc).year
+    complets = [y for y in sorted(par_an) if y < courante]
+    if not complets:
+        return None, {}
+    plein = float(np.median(ref))
+    t0, t1 = int(np.min(ts)), int(np.max(ts))
+
+    def couverture(an: int) -> float:
+        """Fraction de l'annee `an` que la serie recouvre reellement."""
+        deb = calendar.timegm((an, 1, 1, 0, 0, 0))
+        fin = calendar.timegm((an + 1, 1, 1, 0, 0, 0))
+        return max(0.0, min(t1, fin) - max(t0, deb)) / (fin - deb)
+
+    denses = [par_an[y] for y in complets if par_an[y] >= seuil_abs]
+    ecartees = {}
+    for y in complets:
+        if par_an[y] >= seuil_abs:
+            continue
+        attendu = plein * couverture(y)
+        ecartees[y] = ("partielle"
+                       if attendu > 0 and par_an[y] >= SEUIL_DENSITE * attendu
+                       else "eclaircie")
+    if not denses:
+        return None, ecartees
+    return float(np.median(denses)), ecartees
+
+
+def min_n_fenetre(resolus) -> tuple[int, str]:
+    """Barres H4 de la FENETRE sur la serie la plus courte, et son nom.
+
+    LA REGLE DE L'AMENDEMENT 2, RENDUE EXECUTABLE -- ecrite le 2026-09-06,
+    avant toute donnee lisible, et c'est le seul moment ou elle peut l'etre.
+
+    L'amendement exige 99 decalages communs distincts, c'est-a-dire
+    `min_n >= DECALAGES_MIN + 2*MINSHIFT` barres sur la serie la plus courte.
+    Il ne disait pas COMMENT `min_n` se compte, et la difference decide :
+
+        total / span_de_l_archive   -> ce que faisait `verifier` avant le
+                                       2026-09-06. Faux de 14 mois sur NVDA,
+                                       dont l'archive remonte a 2012 avec des
+                                       annees eclaircies.
+        barres DANS LA FENETRE      -> la seule qui reponde a la question posee.
+
+    Le decalage circulaire s'applique aux series du TEST, pas a l'archive : ce
+    qui borne l'espace des decalages est le nombre de barres postérieures au
+    2026-08-27, et rien d'autre. Une cadence est une projection ; ceci est un
+    comptage. **A la lecture, c'est ce comptage qui decide**, jamais une
+    cadence, jamais une date.
+
+    Compter des barres n'ouvre pas la relation testee : aucun signal n'est
+    evalue ici, c'est le meme argument qui autorise `dans_fenetre` dans
+    `verifier` et `couverture_fenetre.py` du cote H1.
+    """
+    debut_ts = int(DEBUT_FENETRE.timestamp())
+    comptes = {}
+    for s in sorted(resolus):
+        d = lire_h4(s)
+        if d is None:
+            # Un symbole sans donnees n'est PAS un symbole a zero barre : ce
+            # serait « retirer un symbole apres coup » par arithmetique. On
+            # rend 0 et on le nomme, pour que la lecture refuse.
+            comptes[s] = 0
+            continue
+        comptes[s] = int((d[0] > debut_ts).sum())
+    if not comptes:
+        return 0, "aucun symbole"
+    lent = min(comptes, key=comptes.get)
+    return comptes[lent], lent
 
 
 def puissance(n: int, c_null: float) -> float:
@@ -424,16 +560,28 @@ def verifier(a) -> int:
     # --- Ce que la fenetre contient AUJOURD'HUI, et sa projection.
     #     On ne compte que des barres. Aucun signal n'est evalue ici.
     debut_ts = int(DEBUT_FENETRE.timestamp())
-    dans_fenetre, par_an = {}, {}
+    dans_fenetre, par_an, creuses = {}, {}, {}
     for s in sorted(resolus):
         d = lire_h4(s)
         if d is None:
             continue
         ts = d[0]
         dans_fenetre[s] = int((ts > debut_ts).sum())
-        span = (ts.max() - ts.min()) / 86400 / 365.25
-        if span > 0:
-            par_an[s] = len(ts) / span
+        # Correctif 2026-09-06 : annees denses seulement. Le quotient
+        # len/span comptait les annees eclaircies et rendait NVDA a
+        # 328 barres/an au lieu de ~500. Voir `cadence_denses`.
+        cad, cr = cadence_denses(ts)
+        if cad:
+            par_an[s] = cad
+        if cr:
+            creuses[s] = cr
+
+    # Projection de l'amendement 2, calculee et non recopiee. Ces trois valeurs
+    # etaient ecrites en dur (« ~2028-11 », « n ~ 1570 », « 2 x 500 ») : elles
+    # sont restees justes tant que la cadence l'etait, et fausses de 14 mois des
+    # que le calcul de cadence a derive. Un chiffre en dur ne signale jamais
+    # qu'il a cesse d'etre vrai.
+    minshift_g, date_am2, n_am2 = int(ns["MINSHIFT"]), "?", CIBLE_N
 
     if par_an:
         lent = min(par_an, key=par_an.get)
@@ -452,11 +600,34 @@ def verifier(a) -> int:
                  "CONTAMINE : le decalage est plus court qu'un trade"),
               "  (c'est pourquoi le « >= 300 » du document est amende : 300 < "
               "MAXB.)",
-              "  serie la plus courte : %s, %.0f barres H4/an" % (lent, par_an[lent]),
+              "  serie la plus courte : %s, %.0f barres H4/an"
+              " (annees denses seulement)" % (lent, par_an[lent]),
               "  fenetre projetee a n=%d trades : ~%.0f mois -> %d barres"
               % (CIBLE_N, mois, min_n_projete),
               "  decalages distincts tirables : %d  (exiges : %d)"
               % (max(0, distincts), DECALAGES_MIN)]
+        # Les annees ECLAIRCIES seules meritent d'etre criees : une annee
+        # partielle en bord de serie est normale (premiere cotation).
+        ecl = {s: [y for y, k in d.items() if k == "eclaircie"]
+               for s, d in creuses.items()}
+        ecl = {s: ans for s, ans in ecl.items() if ans}
+        n_part = sum(1 for d in creuses.values()
+                     for k in d.values() if k == "partielle")
+        if ecl:
+            det = ", ".join("%s %s" % (s, "-".join(str(y) for y in ans[:3])
+                                       + ("+" if len(ans) > 3 else ""))
+                            for s, ans in sorted(ecl.items())[:4])
+            L += ["  annees ECLAIRCIES ecartees du calcul de cadence"
+                  " (%d symboles) : %s" % (len(ecl), det),
+                  "     MT5 sert l'historique ancien a une barre par jour"
+                  " ouvre. Les",
+                  "     compter rend la serie artificiellement lente : c'est le"
+                  " defaut",
+                  "     corrige le 2026-09-06, qui donnait NVDA a 328/an au"
+                  " lieu de 498."]
+        if n_part:
+            L += ["  annees partielles ecartees (bord de serie, normal) : %d"
+                  % n_part]
         if minshift <= maxb:
             blocages.append(
                 "MINSHIFT=%d n'excede pas MAXB=%d : un signal decale retombe "
@@ -466,6 +637,14 @@ def verifier(a) -> int:
             plancher = 1.0 / (min(int(ns["B"]), distincts) + 1)
             L += ["  plancher REEL de p : %.4f  (et non 1/(B+1) = %.4f)"
                   % (plancher, 1.0 / (int(ns["B"]) + 1))]
+        # Quand l'amendement 2 devient satisfait : il faut DECALAGES_MIN + 2x
+        # MINSHIFT barres sur la serie la plus courte, a sa cadence dense.
+        barres_exigees = DECALAGES_MIN + 2 * minshift
+        mois_am2 = barres_exigees / par_an[lent] * 12.0
+        jour_am2 = DEBUT_FENETRE + timedelta(days=mois_am2 * 30.44)
+        date_am2 = jour_am2.strftime("%Y-%m")
+        n_am2 = int(CADENCE_TRADES_AN * mois_am2 / 12.0)
+
         if distincts < DECALAGES_MIN:
             manque = DECALAGES_MIN + 2 * minshift - min_n_projete
             L += ["  -> PAS ENCORE LISIBLE a n=%d : il manque %d barres sur %s."
@@ -510,11 +689,13 @@ def verifier(a) -> int:
           "",
           "  MAIS L'AMENDEMENT 2 A DEJA ABSORBE CE MANQUE, sans l'avoir cherche.",
           "  Il exige %d decalages distincts, donc ~%d barres sur la serie la"
-          % (DECALAGES_MIN, 2 * 500 + DECALAGES_MIN),
-          "  plus courte : la lecture ne peut pas avoir lieu avant ~2028-11, ou",
-          "  la cadence projetee (714 trades/an) donne n ~ 1570 — soit une",
+          % (DECALAGES_MIN, 2 * minshift_g + DECALAGES_MIN),
+          "  plus courte : la lecture ne peut pas avoir lieu avant ~%s, ou"
+          % date_am2,
+          "  la cadence pre-inscrite (%d trades/an) donne n ~ %d — soit une"
+          % (CADENCE_TRADES_AN, n_am2),
           "  puissance de %.3f. Le garde-fou ne mordra donc pas."
-          % puissance(1570, C_UNIVERS),
+          % puissance(n_am2, C_UNIVERS),
           "",
           "  Le bloc crypto seul est mesure a 3,631, la ou la pre-inscription",
           "  redoutait 2,42 : sa crainte etait juste, et sous-estimee de 50 %.",
@@ -570,6 +751,24 @@ def executer(a) -> int:
     if code != OK:
         print("\nREFUS : la verification rend %d. La lecture n'a pas lieu." % code)
         return code
+
+    # --- VERROU DE L'AMENDEMENT 2, pose le 2026-09-06 et compte SUR LA FENETRE.
+    #     Il vient AVANT toute statistique : l'ordre des verrous est le
+    #     garde-fou, pas la bonne volonte de celui qui lit.
+    exigees = DECALAGES_MIN + 2 * int(charger_appareil_gele()["MINSHIFT"])
+    mn, lent = min_n_fenetre(
+        json.loads(UNIVERS.read_text(encoding="utf-8"))["resolus"])
+    if mn < exigees:
+        print("REFUS : l'amendement 2 exige %d decalages communs distincts, "
+              "donc %d barres H4" % (DECALAGES_MIN, exigees))
+        print("  sur la serie la plus courte de la fenetre. %s en a %d "
+              "-- il en manque %d." % (lent, mn, exigees - mn))
+        print("  Le plancher REEL de p vaut 1/(distincts+1) et jamais 1/(B+1) :")
+        print("  sous ce seuil, l'instrument ne peut pas rendre une p qui "
+              "signifie quelque chose.")
+        print("  Ce comptage porte sur la FENETRE, pas sur l'archive, et ne "
+              "regarde aucun signal.")
+        return DECALAGES_INSUFFISANTS
 
     print("Les verrous ont cede. La suite reste a ecrire : elle demande les "
           "donnees de la fenetre, qui n'existent pas encore.")
