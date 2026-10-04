@@ -1,4 +1,4 @@
-# Archivage H1 + H4 de l'univers H_TREND — 2026-09-21 18:06 UTC
+# Archivage H1 + H4 de l'univers H_TREND — 2026-10-01 14:03 UTC
 
 **42 / 42 symboles archivés.** Destination : `C:\Users\grego\dev\Daytrading\donnees-h4`
 
@@ -10,45 +10,45 @@ H4 (témoin secondaire) : `C:\Users\grego\dev\Daytrading\donnees-h4`
 
 | Cible | Nom broker | Barres H4 | Nouvelles | Barres H1 |
 |---|---|---|---|---|
-| `AAPL` | `Apple` | 2779 | +28 | 4742 |
-| `ADAUSDT` | `ADAUSDT` | 18469 | +138 | 23875 |
-| `AMZN` | `Amazon` | 2596 | +28 | 4741 |
-| `ATOMUSDT` | `ATOMUSDT` | 16212 | +138 | 23875 |
-| `AUDJPY` | `AUDJPY` | 12839 | +93 | 16938 |
-| `AUDUSD` | `AUDUSD` | 12840 | +95 | 16939 |
-| `AVAXUSDT` | `AVAXUSDT` | 13144 | +138 | 23875 |
-| `BNBUSDT` | `BNBUSDT` | 19435 | +138 | 23875 |
-| `BTCUSDT` | `BTCUSDT` | 19920 | +138 | 23875 |
-| `DE40` | `GER40` | 11242 | +92 | 14089 |
-| `DOGEUSDT` | `DOGEUSDT` | 15810 | +138 | 23875 |
-| `DOTUSDT` | `DOTUSDT` | 13350 | +138 | 23875 |
-| `ETHUSDT` | `ETHUSDT` | 19920 | +138 | 23875 |
-| `EURGBP` | `EURGBP` | 12842 | +93 | 16941 |
-| `EURJPY` | `EURJPY` | 12838 | +93 | 16938 |
-| `EURUSD` | `EURUSD` | 12845 | +95 | 16941 |
-| `FRA40` | `FRA40` | 10317 | +61 | 9692 |
-| `GBPJPY` | `GBPJPY` | 12839 | +93 | 16894 |
-| `GBPUSD` | `GBPUSD` | 12841 | +95 | 16941 |
-| `GOOGL` | `Alphabet-A` | 2702 | +28 | 4741 |
-| `JP225` | `JPN225` | 11307 | +93 | 16085 |
-| `LINKUSDT` | `LINKUSDT` | 16828 | +138 | 23875 |
-| `LTCUSDT` | `LTCUSDT` | 19213 | +138 | 23875 |
-| `META` | `Meta` | 2786 | +28 | 4728 |
-| `MSFT` | `Microsoft` | 2800 | +28 | 4740 |
-| `NATGAS` | `XNGUSD` | 10829 | +93 | 16099 |
-| `NFLX` | `Netflix` | 2781 | +28 | 4741 |
-| `NVDA` | `NVIDIA` | 4836 | +28 | 4741 |
-| `NZDUSD` | `NZDUSD` | 12806 | +95 | 16939 |
-| `SOLUSDT` | `SOLUSDT` | 13396 | +138 | 23875 |
-| `TSLA` | `Tesla` | 2768 | +28 | 4742 |
-| `UK100` | `UK100` | 12789 | +87 | 13744 |
-| `US30` | `US30` | 13098 | +94 | 16073 |
-| `US500` | `US500` | 13098 | +95 | 16073 |
-| `USDCAD` | `USDCAD` | 12807 | +95 | 16940 |
-| `USDCHF` | `USDCHF` | 12806 | +95 | 16937 |
-| `USDJPY` | `USDJPY` | 12807 | +95 | 16940 |
-| `USTEC` | `NAS100` | 13018 | +92 | 16077 |
-| `WTI` | `XTIUSD` | 10809 | +93 | 16096 |
-| `XAGUSD` | `XAGUSD` | 12844 | +95 | 16109 |
-| `XAUUSD` | `XAUUSD` | 12804 | +95 | 16107 |
-| `XRPUSDT` | `XRPUSDT` | 18366 | +138 | 23875 |
+| `AAPL` | `Apple` | 2795 | +16 | 4795 |
+| `ADAUSDT` | `ADAUSDT` | 18528 | +59 | 24111 |
+| `AMZN` | `Amazon` | 2612 | +16 | 4794 |
+| `ATOMUSDT` | `ATOMUSDT` | 16271 | +59 | 24111 |
+| `AUDJPY` | `AUDJPY` | 12887 | +48 | 17126 |
+| `AUDUSD` | `AUDUSD` | 12887 | +47 | 17127 |
+| `AVAXUSDT` | `AVAXUSDT` | 13203 | +59 | 24111 |
+| `BNBUSDT` | `BNBUSDT` | 19494 | +59 | 24111 |
+| `BTCUSDT` | `BTCUSDT` | 19979 | +59 | 24111 |
+| `DE40` | `GER40` | 11291 | +49 | 14241 |
+| `DOGEUSDT` | `DOGEUSDT` | 15869 | +59 | 24111 |
+| `DOTUSDT` | `DOTUSDT` | 13409 | +59 | 24111 |
+| `ETHUSDT` | `ETHUSDT` | 19979 | +59 | 24111 |
+| `EURGBP` | `EURGBP` | 12890 | +48 | 17129 |
+| `EURJPY` | `EURJPY` | 12886 | +48 | 17126 |
+| `EURUSD` | `EURUSD` | 12892 | +47 | 17129 |
+| `FRA40` | `FRA40` | 10349 | +32 | 9796 |
+| `GBPJPY` | `GBPJPY` | 12887 | +48 | 17078 |
+| `GBPUSD` | `GBPUSD` | 12888 | +47 | 17129 |
+| `GOOGL` | `Alphabet-A` | 2718 | +16 | 4794 |
+| `JP225` | `JPN225` | 11355 | +48 | 16261 |
+| `LINKUSDT` | `LINKUSDT` | 16887 | +59 | 24111 |
+| `LTCUSDT` | `LTCUSDT` | 19272 | +59 | 24111 |
+| `META` | `Meta` | 2802 | +16 | 4781 |
+| `MSFT` | `Microsoft` | 2816 | +16 | 4793 |
+| `NATGAS` | `XNGUSD` | 10877 | +48 | 16275 |
+| `NFLX` | `Netflix` | 2797 | +16 | 4794 |
+| `NVDA` | `NVIDIA` | 4852 | +16 | 4794 |
+| `NZDUSD` | `NZDUSD` | 12853 | +47 | 17127 |
+| `SOLUSDT` | `SOLUSDT` | 13455 | +59 | 24111 |
+| `TSLA` | `Tesla` | 2784 | +16 | 4795 |
+| `UK100` | `UK100` | 12837 | +48 | 13900 |
+| `US30` | `US30` | 13145 | +47 | 16253 |
+| `US500` | `US500` | 13145 | +47 | 16253 |
+| `USDCAD` | `USDCAD` | 12854 | +47 | 17128 |
+| `USDCHF` | `USDCHF` | 12853 | +47 | 17125 |
+| `USDJPY` | `USDJPY` | 12854 | +47 | 17128 |
+| `USTEC` | `NAS100` | 13066 | +48 | 16253 |
+| `WTI` | `XTIUSD` | 10857 | +48 | 16276 |
+| `XAGUSD` | `XAGUSD` | 12891 | +47 | 16289 |
+| `XAUUSD` | `XAUUSD` | 12851 | +47 | 16287 |
+| `XRPUSDT` | `XRPUSDT` | 18425 | +59 | 24111 |
