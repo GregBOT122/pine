@@ -1,0 +1,229 @@
+//@version=6
+// =============================================================================
+//  SESSION_MOMENTUM SUR MGC  --  contre-test sur le VRAI contrat, regles prop firm
+// -----------------------------------------------------------------------------
+//  POURQUOI CE SCRIPT EXISTE (2026-10-06)
+//
+//  Toute la serie de session_momentum (197 trades OOS, expR +0.075, WR 43.7 %)
+//  vient du XAUUSD CFD de MT5. Une prop firm se trade sur le contrat MGC du
+//  COMEX : autre carnet, autre spread, contango, autres heures. Ce script rejoue
+//  la MEME logique sur MGC1! pour repondre a une seule question : la strategie
+//  se comporte-t-elle sur l'instrument reel comme sur le CFD ?
+//
+//  CE N'EST PAS UN TERRAIN DE REGLAGE. Les entrees ci-dessous sont celles de
+//  `_validated_strategy_cfg()` (bot/xaubot/xaubot/live/config.py). Les changer
+//  pour faire monter un chiffre serait le repechage que le registre interdit :
+//  le 2026-10-05, 20 $ de risque en plus suffisaient a deplacer le taux de
+//  reussite de 4 points. Un ecart avec la serie CFD est une INFORMATION, pas
+//  un probleme a corriger ici.
+//
+//  LOGIQUE (identique a strategies/session_momentum.py, mode retest, M15)
+//   * horloge SERVEUR = New York + 7 h toute l'annee (mesure le 2026-10-05 :
+//     la pause de l'or tombe a 00 h serveur en hiver comme en ete)
+//   * range de reference : barres M15 ouvrant entre 0 h et 7 h serveur
+//     (17 h - 24 h New York la veille)
+//   * fenetre : decision aux clotures M15 de 8 h a 10 h serveur (1 h - 3 h NY)
+//   * cloture M15 au-dela du range -> ARME ; retest du niveau (plus-bas <=
+//     niveau et cloture >= niveau, a l'achat) -> entree a la cloture
+//   * stop = cote oppose du range -/+ 0.10 $ ; objectif = 2 R ; une seule
+//     entree par jour ; stop entre 0.2 et 7 ATR H1, sinon le signal est ignore
+//   * flat a 21 h serveur (14 h NY, 13 h CT, avant le 15 h 10 CT de Topstep)
+//
+//  ECARTS ASSUMES avec le moteur Python
+//   * les sorties sont simulees par l'emulateur de TradingView sur les barres
+//     du graphique, pas sur des barres M1 (activer « Bar Magnifier » si dispo)
+//   * l'ATR H1 est celui de la DERNIERE barre H1 close avant la decision
+//   * cout : 1 tick de glissement par ordre et 0.75 $ de commission par ordre,
+//     au lieu du spread de 36 points du CFD
+//
+//  A utiliser sur MGC1! (ou un contrat MGC), unite de temps 15 minutes.
+// =============================================================================
+
+strategy("session_momentum MGC [prop firm]", overlay = true,
+     initial_capital        = 50000,
+     currency               = currency.USD,
+     default_qty_type       = strategy.fixed,
+     default_qty_value      = 1,
+     pyramiding             = 0,
+     commission_type        = strategy.commission.cash_per_contract,
+     commission_value       = 0.75,
+     slippage               = 1,
+     process_orders_on_close = true,
+     calc_on_every_tick     = false,
+     max_bars_back          = 5000)
+
+// --------------------------------------------- STRATEGIE (FIGEE, NE PAS REGLER)
+grpS   = "Strategie : config validee, ne pas regler"
+refDeb = input.int(0,     "Range : debut (h serveur)",          group = grpS)
+refFin = input.int(7,     "Range : fin, exclue (h serveur)",    group = grpS)
+entDeb = input.int(8,     "Fenetre d'entree : debut (h serv.)", group = grpS)
+entFin = input.int(10,    "Fenetre : fin, exclue (h serveur)",  group = grpS)
+flatH  = input.int(21,    "Flat (h serveur)",                   group = grpS)
+rr     = input.float(2.0, "Objectif (R)",                       group = grpS)
+slMinA = input.float(0.20,"Stop minimal (ATR H1)",              group = grpS)
+slMaxA = input.float(7.00,"Stop maximal (ATR H1)",              group = grpS)
+decalH = input.int(7,     "Heure serveur = New York + (h)",     group = grpS)
+
+// ------------------------------------------------------------- PROP FIRM
+grpP      = "Evaluation prop firm"
+regle     = input.string("Topstep 50K", "Regles",
+             options = ["Topstep 50K", "Bulenox Qualification 50K", "Aucune"], group = grpP)
+// input.time exige une constante : la forme texte de timestamp() en est une,
+// la forme (fuseau, annee, mois...) non (erreur CE10123 a la 1re compilation).
+debutEval = input.time(timestamp("05 Jan 2026 00:00 -0500"), "Debut de l'evaluation", group = grpP)
+survie    = input.bool(true, "Sauter un trade dont le stop depasse la marge restante", group = grpP)
+arreter   = input.bool(true, "Plus aucune entree une fois l'evaluation tranchee", group = grpP)
+
+// Regles lues a la source le 2026-10-05/06 (DECISIONS.md)
+float ddMax   = regle == "Topstep 50K" ? 2000.0 : 2500.0
+float cible   = 3000.0
+float gel     = regle == "Topstep 50K" ? 2000.0 : na     // le plancher se fige au depart
+float coher   = regle == "Topstep 50K" ? 0.55 : na       // releve la cible, n'elimine pas
+int   fenJours = regle == "Bulenox Qualification 50K" ? 30 : na
+bool  evalOn  = regle != "Aucune"
+
+// ------------------------------------------------------------- HORLOGE SERVEUR
+const string TZ = "America/New_York"
+int   decalMs  = decalH * 3600000
+int   tOuvSrv  = time + decalMs
+int   tFermSrv = time_close + decalMs
+int   hOuv     = hour(tOuvSrv, TZ)            // heure serveur d'ouverture de la barre
+int   hDec     = hour(tFermSrv, TZ)           // heure serveur de la decision (cloture)
+int   jourSrv  = year(tOuvSrv, TZ) * 10000 + month(tOuvSrv, TZ) * 100 + dayofmonth(tOuvSrv, TZ)
+int   jourDec  = year(tFermSrv, TZ) * 10000 + month(tFermSrv, TZ) * 100 + dayofmonth(tFermSrv, TZ)
+int   dowDec   = dayofweek(tFermSrv, TZ)      // 1 = dimanche ... 7 = samedi
+bool  ouvre    = dowDec >= dayofweek.monday and dowDec <= dayofweek.friday
+
+// ------------------------------------------------------------- ATR H1 (derniere close)
+float atrH1 = request.security(syminfo.tickerid, "60", ta.atr(14)[1], lookahead = barmerge.lookahead_on)
+
+// ------------------------------------------------------------- RANGE ET ETAT DU JOUR
+var float rgHaut  = na
+var float rgBas   = na
+var int   rgJour  = na
+var int   phase   = 0        // 0 repos, 1 arme, 2 fait
+var float niveau  = na
+var int   sens    = 0
+var int   etatJour = na
+
+// `x != na` vaut na, et un `if` le lit comme FAUX : sans na() explicite, le
+// premier jour ne serait jamais detecte et le range ne se remettrait jamais a zero.
+if na(rgJour) or jourSrv != rgJour
+    rgJour := jourSrv
+    rgHaut := na
+    rgBas  := na
+if hOuv >= refDeb and hOuv < refFin
+    rgHaut := na(rgHaut) ? high : math.max(rgHaut, high)
+    rgBas  := na(rgBas)  ? low  : math.min(rgBas, low)
+
+if na(etatJour) or jourDec != etatJour   // le moteur remet l'etat a zero sur la date de DECISION
+    etatJour := jourDec
+    phase    := 0
+    niveau   := na
+    sens     := 0
+
+// ------------------------------------------------------------- SUIVI DE L'EVALUATION
+var float base      = na
+var float pic       = 0.0
+var float meilleur  = 0.0
+var float pnlJourDeb = na
+var int   jourEod   = na
+var string issue    = "en cours"
+var int   nTrades   = 0
+
+bool dansEval = evalOn and time >= debutEval
+if dansEval and na(base) and strategy.position_size == 0
+    base       := strategy.equity
+    pnlJourDeb := strategy.netprofit
+    jourEod    := jourSrv
+
+float pnl = na(base) ? 0.0 : strategy.equity - base
+// fin de journee (frontiere du jour serveur = 17 h NY) : le plancher se recalcule
+if not na(base) and jourSrv != jourEod
+    jourEod := jourSrv
+    float soldeEod = strategy.netprofit - (base - strategy.initial_capital)
+    pic := math.max(pic, soldeEod)
+    meilleur := math.max(meilleur, strategy.netprofit - pnlJourDeb)
+    pnlJourDeb := strategy.netprofit
+float picEff   = na(gel) ? pic : math.min(pic, gel)
+float plancher = picEff - ddMax
+float cibleEff = na(coher) ? cible : math.max(cible, meilleur / coher)
+
+if not na(base) and issue == "en cours"
+    if pnl <= plancher
+        issue := "ELIMINEE"
+    else if strategy.position_size == 0 and pnl >= cibleEff
+        issue := "REUSSIE"
+    else if not na(fenJours) and time > debutEval + fenJours * 86400000
+        issue := "TEMPS ECOULE"
+
+bool entreesPermises = not (arreter and not na(base) and issue != "en cours")
+
+// ------------------------------------------------------------- SIGNAL (cloture M15)
+bool fenetre = hDec >= entDeb and hDec < entFin and ouvre and not na(rgHaut) and not na(rgBas)
+
+if fenetre and phase == 0
+    if close > rgHaut
+        phase  := 1
+        niveau := rgHaut
+        sens   := 1
+    else if close < rgBas
+        phase  := 1
+        niveau := rgBas
+        sens   := -1
+else if fenetre and phase == 1 and strategy.position_size == 0 and entreesPermises
+    bool hausse = sens ==  1 and low  <= niveau and close >= niveau
+    bool baisse = sens == -1 and high >= niveau and close <= niveau
+    if hausse or baisse
+        float entree = close
+        float stop   = sens == 1 ? rgBas - 0.10 : rgHaut + 0.10
+        float dist   = math.abs(entree - stop)
+        float risque = dist * syminfo.pointvalue * strategy.default_entry_qty(entree)
+        bool  bornes = na(atrH1) or (dist >= slMinA * atrH1 and dist <= slMaxA * atrH1)
+        bool  marge  = not survie or na(base) or risque < pnl - plancher
+        if bornes and marge
+            float obj = sens == 1 ? entree + rr * dist : entree - rr * dist
+            if sens == 1
+                strategy.entry("SM", strategy.long)
+            else
+                strategy.entry("SM", strategy.short)
+            strategy.exit("SM-x", "SM", stop = stop, limit = obj)
+            phase   := 2
+            nTrades += 1
+        else if bornes and not marge
+            phase := 2      // le jour est perdu : trade trop gros pour la marge restante
+            label.new(bar_index, high, "saute : " + str.tostring(risque, "#") + " $ > marge",
+                 style = label.style_label_down, color = color.new(color.orange, 20),
+                 textcolor = color.white, size = size.tiny)
+
+// ------------------------------------------------------------- FLAT 21 H SERVEUR
+if strategy.position_size != 0 and hDec >= flatH
+    strategy.close_all(comment = "flat 21h")
+
+// ------------------------------------------------------------- AFFICHAGE
+plot(rgHaut, "Range haut", color = color.new(color.teal, 30), style = plot.style_linebr)
+plot(rgBas,  "Range bas",  color = color.new(color.maroon, 30), style = plot.style_linebr)
+bgcolor(fenetre ? color.new(color.blue, 92) : na, title = "Fenetre d'entree")
+
+var table tb = table.new(position.top_right, 2, 9, border_width = 1)
+if barstate.islast
+    color fond = issue == "REUSSIE" ? color.new(color.green, 70) :
+                 issue == "en cours" ? color.new(color.gray, 80) : color.new(color.red, 70)
+    table.cell(tb, 0, 0, regle, text_color = color.white, bgcolor = color.new(color.navy, 20))
+    table.cell(tb, 1, 0, issue, bgcolor = fond)
+    table.cell(tb, 0, 1, "P&L de l'evaluation")
+    table.cell(tb, 1, 1, str.tostring(pnl, "#,##0") + " $")
+    table.cell(tb, 0, 2, "Plancher")
+    table.cell(tb, 1, 2, str.tostring(plancher, "#,##0") + " $")
+    table.cell(tb, 0, 3, "Marge restante")
+    table.cell(tb, 1, 3, str.tostring(pnl - plancher, "#,##0") + " $")
+    table.cell(tb, 0, 4, "Cible")
+    table.cell(tb, 1, 4, str.tostring(cibleEff, "#,##0") + " $")
+    table.cell(tb, 0, 5, "Meilleur jour")
+    table.cell(tb, 1, 5, str.tostring(meilleur, "#,##0") + " $")
+    table.cell(tb, 0, 6, "Trades depuis le debut")
+    table.cell(tb, 1, 6, str.tostring(nTrades))
+    table.cell(tb, 0, 7, "Reference CFD (OOS)")
+    table.cell(tb, 1, 7, "WR 43.7 % · expR +0.075 · ~79/an")
+    table.cell(tb, 0, 8, "Horloge")
+    table.cell(tb, 1, 8, "serveur = NY + " + str.tostring(decalH) + " h")
