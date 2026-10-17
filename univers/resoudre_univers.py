@@ -103,6 +103,20 @@ EDGE_NET_R = 0.1604      # edge attribuable au signal, mesuré 2026-08-26
 STOP_ATR = 1.5           # stop initial de la configuration figée
 SEUIL = EDGE_NET_R * STOP_ATR   # friction A/R qui annule l'edge, en unités d'ATR%
 
+# --------------------------------------------------------------- le courtier --
+# GELÉ par ANNEXE_UNIVERS_RESOLU_2026-08-27 : l'univers a été résolu contre
+# FusionMarkets-Live, et `sha256_univers` scelle ses NOMS de symboles.
+#
+# `mt5.initialize()` SANS chemin se rattache au terminal qu'il veut. Le
+# 2026-10-16 à 03:00, pendant la nuit du bot P2, il a choisi MetaQuotes-Demo
+# (12 295 symboles offerts au lieu de 250) : 12 noms de `resolus` remplacés,
+# des specs d'un autre compte, et 1 110 spreads démo versés dans le CSV.
+# `garde_broker.py` (scanner H1) citait ce script parmi les appels non gardés
+# depuis le 2026-08-27. Le chemin RATTACHE au bon terminal ; le serveur VÉRIFIE
+# qu'on y est. Mieux vaut une passe perdue qu'une passe versée d'ailleurs.
+TERMINAL_GELE = r"C:\Program Files\Fusion Markets MetaTrader 5\terminal64.exe"
+SERVEUR_GELE = "FusionMarkets-Live"
+
 
 # ------------------------------------------------------------------ outils ---
 def maintenant() -> str:
@@ -182,6 +196,17 @@ def candidats(cible: str, tous: list[str], actions: bool) -> list[str]:
 def suggestions(cible: str, tous: list[str]) -> list[str]:
     """Candidats POUR L'HUMAIN uniquement. Jamais résolus automatiquement."""
     return difflib.get_close_matches(cible, tous, n=5, cutoff=0.5)
+
+
+def controle_courtier(mt5) -> str | None:
+    """None si MT5 est sur le courtier gelé, sinon la raison du refus."""
+    info = mt5.account_info()
+    if info is None:
+        return "terminal ouvert mais aucun compte connecté"
+    if info.server != SERVEUR_GELE:
+        return (f"connecté à {info.server}, {SERVEUR_GELE} attendu "
+                f"(ANNEXE_UNIVERS_RESOLU_2026-08-27)")
+    return None
 
 
 def resoudre_mt5(mt5, verbose=True):
@@ -539,12 +564,18 @@ def main():
         return 2
 
     print(f"[{maintenant()}] résolution de l'univers H_TREND\n")
-    if not mt5.initialize():
+    if not mt5.initialize(path=TERMINAL_GELE):
         print(f"mt5.initialize a échoué : {mt5.last_error()}")
-        print("Ouvrir MetaTrader5 et se connecter, puis relancer.")
+        print(f"Ouvrir {TERMINAL_GELE} et se connecter, puis relancer.")
         return 1
 
     try:
+        refus = controle_courtier(mt5)
+        if refus:
+            print(f"REFUS : {refus}")
+            print("  Rien n'est écrit : ni le CSV, ni le json, ni le rapport.")
+            return 1
+        print(f"  courtier : {SERVEUR_GELE}\n")
         print("1. MT5")
         r_mt5, m_mt5, tous = resoudre_mt5(mt5)
         print(f"     {len(r_mt5)}/{len(MT5_FX_INDICES) + len(MT5_ACTIONS)} résolus")

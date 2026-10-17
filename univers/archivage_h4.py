@@ -52,6 +52,11 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Le courtier GELÉ et son contrôle sont ceux de `resoudre_univers.py`, à côté :
+# l'univers que ce script lit y a été résolu contre FusionMarkets-Live
+# (ANNEXE_UNIVERS_RESOLU_2026-08-27), et le gel ne s'écrit qu'à un endroit.
+from resoudre_univers import SERVEUR_GELE, TERMINAL_GELE, controle_courtier
+
 ICI = Path(__file__).resolve().parent
 UNIVERS = ICI / "univers_resolu.json"
 
@@ -302,11 +307,26 @@ def main() -> int:
     lignes, vides, sans_h1 = [], [], []
     try:
         import MetaTrader5 as mt5
-        ok_mt5 = mt5.initialize()
+        # PAR LE CHEMIN depuis le 2026-10-16. Sans lui, `initialize()` se
+        # rattache au terminal qu'il veut, et les nuits de semaine c'est celui
+        # du bot P2 (MetaQuotes-Demo) : `resoudre_univers.py` y est tombé ce
+        # matin-là. Ici ce serait pire qu'un CSV à purger : l'archive garde la
+        # PREMIÈRE version vue d'une barre, et une barre démo y resterait.
+        ok_mt5 = mt5.initialize(path=TERMINAL_GELE)
     except ImportError:
         mt5, ok_mt5 = None, False
     if not ok_mt5:
         print("! MetaTrader5 indisponible — seules les paires Binance seront archivees.")
+    else:
+        refus = controle_courtier(mt5)
+        if refus:
+            # Refus ENTIER, Binance compris, et un code à part : 1 veut déjà
+            # dire « symboles muets », et un refus n'est pas un delisting.
+            mt5.shutdown()
+            print(f"REFUS : {refus}")
+            print("  Rien n'est écrit : ni l'archive H4, ni le cache H1, ni le rapport.")
+            return 3
+        print(f"  courtier : {SERVEUR_GELE}")
 
     for cible in sorted(resolus):
         nom = resolus[cible]
