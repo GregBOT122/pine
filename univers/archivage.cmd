@@ -6,7 +6,8 @@ REM AMENDEMENT_TREND_H4_2026-08-28.md.
 REM Assurance contre un delisting Binance et un glissement du calendrier de
 REM lecture au-dela d'aout 2029. Sert AUSSI de detecteur de delisting : tout
 REM symbole muet est signale dans RAPPORT_ARCHIVAGE.md.
-REM PREREQUIS : MetaTrader 5 ouvert et connecte (sinon seul Binance est archive).
+REM PREREQUIS : MetaTrader 5 ouvert et connecte (sinon seul Binance est archive,
+REM et la tache rend 5).
 REM
 REM LE CODE DE LA TACHE EST CELUI DE PYTHON, depuis le 2026-10-17. Jusque-la, la
 REM derniere commande etait le `copy` vers OneDrive : la tache rendait 0 meme
@@ -18,6 +19,9 @@ REM        rapport neuf dit lequel, le journal aussi
 REM     2  univers_resolu.json absent, rien n'est ecrit
 REM     3  REFUS : courtier autre que FusionMarkets-Live, rien n'est ecrit
 REM     4  Python a rendu 0, mais aucun rapport neuf n'est arrive dans OneDrive
+REM     5  MetaTrader 5 indisponible : archive PARTIELLE, Binance seul. Les
+REM        symboles MT5 non archives sont nommes dans le rapport. Pas un
+REM        delisting : relancer a la main, terminal Fusion ouvert
 REM Le 4 est le seul que ce .cmd fabrique : un code de sortie n'est pas une
 REM preuve d'ecriture.
 REM

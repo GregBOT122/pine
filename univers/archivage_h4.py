@@ -304,7 +304,7 @@ def main() -> int:
     d = json.loads(UNIVERS.read_text(encoding="utf-8"))
     resolus = d["resolus"]
 
-    lignes, vides, sans_h1 = [], [], []
+    lignes, vides, sans_h1, non_archives = [], [], [], []
     try:
         import MetaTrader5 as mt5
         # PAR LE CHEMIN depuis le 2026-10-16. Sans lui, `initialize()` se
@@ -313,8 +313,10 @@ def main() -> int:
         # matin-là. Ici ce serait pire qu'un CSV à purger : l'archive garde la
         # PREMIÈRE version vue d'une barre, et une barre démo y resterait.
         ok_mt5 = mt5.initialize(path=TERMINAL_GELE)
+        cause_mt5 = None if ok_mt5 else f"initialize() a rendu False, {mt5.last_error()}"
     except ImportError:
         mt5, ok_mt5 = None, False
+        cause_mt5 = "module MetaTrader5 absent"
     if not ok_mt5:
         print("! MetaTrader5 indisponible — seules les paires Binance seront archivees.")
     else:
@@ -331,17 +333,24 @@ def main() -> int:
     for cible in sorted(resolus):
         nom = resolus[cible]
         crypto = cible.endswith("USDT")
+        if not crypto and not ok_mt5:
+            # NI MUET, NI OUBLIE. Jusqu'au 2026-10-17, ce symbole tombait dans
+            # `if not barres` avec une liste vide, n'etait pas compte muet (le
+            # terminal est ferme, pas le marche), et sortait par `continue` sans
+            # laisser de trace : voir le code 5 en fin de `main()`.
+            non_archives.append((cible, nom))
+            print(f"  {cible:10s} NON ARCHIVE — MT5 indisponible")
+            continue
         try:
-            barres = binance_h4(nom) if crypto else (mt5_h4(mt5, nom) if ok_mt5 else [])
+            barres = binance_h4(nom) if crypto else mt5_h4(mt5, nom)
         except Exception as ex:                              # noqa: BLE001
             print(f"  {cible:10s} ECHEC {type(ex).__name__}")
             vides.append((cible, nom, type(ex).__name__))
             continue
         if not barres:
             # C'est le signal qui compte : un symbole muet est peut-etre delisté.
-            if crypto or ok_mt5:
-                vides.append((cible, nom, "aucune barre"))
-                print(f"  {cible:10s} AUCUNE BARRE — delisté ?")
+            vides.append((cible, nom, "aucune barre"))
+            print(f"  {cible:10s} AUCUNE BARRE — delisté ?")
             continue
         total, neuves = fusionner(ARCHIVE / f"{cible}_H4.csv", barres)
 
@@ -350,7 +359,7 @@ def main() -> int:
         #     barres, et c'est le H1 que `load()` reagrege.
         try:
             b1 = (binance_h4(nom, "1h") if crypto
-                  else (mt5_h4(mt5, nom, mt5.TIMEFRAME_H1) if ok_mt5 else []))
+                  else mt5_h4(mt5, nom, mt5.TIMEFRAME_H1))
             n1, f1 = archiver_h1(cible, b1)
         except Exception as ex:                              # noqa: BLE001
             n1, f1 = 0, 0
@@ -369,6 +378,15 @@ def main() -> int:
     r = [f"# Archivage H1 + H4 de l'univers H_TREND — {horo}", "",
          f"**{len(lignes)} / {len(resolus)} symboles archivés.** "
          f"Destination : `{ARCHIVE}`", ""]
+    if non_archives:
+        r += ["## ⚠ METATRADER 5 INDISPONIBLE — ARCHIVE PARTIELLE, PAS UN DELISTING", "",
+              f"Cause : {cause_mt5}. Ces {len(non_archives)} symboles n'ont **pas été "
+              "demandés** au courtier : ce passage ne dit rien de leur cotation, ni "
+              "dans un sens ni dans l'autre. Relancer `archivage.cmd` à la main, "
+              f"terminal Fusion Markets ouvert et connecté (`{TERMINAL_GELE}`).", "",
+              "| Cible | Nom broker |", "|---|---|"]
+        r += [f"| `{c}` | `{n}` |" for c, n in non_archives]
+        r.append("")
     if vides:
         r += ["## ⚠ SYMBOLES MUETS — À VÉRIFIER", "",
               "Un symbole qui ne rend aucune barre est peut-être **delisté**. "
@@ -403,7 +421,24 @@ def main() -> int:
     if sans_h1:
         print("! %d symboles SANS H1 — la lecture les ecarterait en silence : %s"
               % (len(sans_h1), ", ".join(sorted(sans_h1))))
-    return 1 if (vides or sans_h1) else 0
+    if non_archives:
+        print("! %d symboles MT5 NON ARCHIVES — MT5 indisponible : %s"
+              % (len(non_archives), ", ".join(c for c, _ in non_archives)))
+    # --- CODE 5, ajoute le 2026-10-17 : MT5 indisponible, archive partielle.
+    #
+    #     Depuis le premier commit (pine d0a0982, 2026-08-28), une passe sans
+    #     terminal sautait les 30 symboles MT5 sans les compter nulle part, et
+    #     rendait 0 sur un rapport « 12 / 42 symboles archivés ». Le registre du
+    #     2026-09-21 affirme qu'ils etaient « signales comme muets » : faux. Et
+    #     muets aurait ete faux aussi, puisqu'un terminal ferme n'est pas un
+    #     delisting. D'ou un code a part.
+    #
+    #     1 L'EMPORTE SUR 5. Un symbole Binance muet est peut-etre delisté : c'est
+    #     le signal que ce script existe pour donner, il ne doit pas se lire
+    #     « terminal ferme ». La section MT5 reste dans le rapport.
+    if vides or sans_h1:
+        return 1
+    return 5 if non_archives else 0
 
 
 if __name__ == "__main__":
