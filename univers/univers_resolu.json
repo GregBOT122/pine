@@ -1,7 +1,7 @@
 {
   "edge_net_r": 0.1604,
   "frais_crypto_rt_pct": 0.2,
-  "genere_utc": "2026-10-17 01:14:57",
+  "genere_utc": "2026-10-24 07:14:49",
   "manquants": {},
   "resolus": {
     "AAPL": "Apple",
@@ -47,215 +47,215 @@
     "XAUUSD": "XAUUSD",
     "XRPUSDT": "XRPUSDT"
   },
-  "sha256_spreads": "153cf42fbc02d802d838a675fef93af4a972db983577a6adcf5717b571298a4e",
+  "sha256_spreads": "70e6c3fb885f8d6f2a70e7dfee295e237bd653dd9401ebfd8afbbb70c914828f",
   "sha256_univers": "b09836abe7c035df4467f53c79297a54ceafee7969e1691c7dfb6b729b8ba962",
   "specs": {
     "AAPL": {
-      "atr_pct_h4": 1.4202549912508027,
+      "atr_pct_h4": 1.4197454141943233,
       "digits": 2,
-      "h1_barres": 9893,
+      "h1_barres": 9928,
       "h1_depuis": "2021-03-08",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
+      "point_value_mesuree": 0.013999999999999999,
       "spread_points_instantane": 21,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "ADAUSDT": {
-      "atr_pct_h4": 2.4274940703038825,
-      "atr_pct_h4_recent": 2.7107770964658746,
+      "atr_pct_h4": 2.4270661808437892,
+      "atr_pct_h4_recent": 2.6585583942198383,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "AMZN": {
-      "atr_pct_h4": 1.7991076929062406,
+      "atr_pct_h4": 1.795879713149687,
       "digits": 2,
-      "h1_barres": 9204,
+      "h1_barres": 9239,
       "h1_depuis": "2021-03-15",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 25,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 33,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "ATOMUSDT": {
-      "atr_pct_h4": 2.2812393595741574,
-      "atr_pct_h4_recent": 2.7361273640670283,
+      "atr_pct_h4": 2.292560461511977,
+      "atr_pct_h4_recent": 2.654082747238572,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "AUDJPY": {
-      "atr_pct_h4": 0.4781832287230606,
+      "atr_pct_h4": 0.47741895249426614,
       "digits": 3,
-      "h1_barres": 49470,
+      "h1_barres": 49590,
       "h1_depuis": "1998-05-07",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.001,
-      "point_value_mesuree": 0.8951,
-      "spread_points_instantane": 67,
+      "point_value_mesuree": 0.8931999999999999,
+      "spread_points_instantane": 76,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "AUDUSD": {
-      "atr_pct_h4": 0.4441317501013977,
+      "atr_pct_h4": 0.44374662720745495,
       "digits": 5,
-      "h1_barres": 49572,
+      "h1_barres": 49692,
       "h1_depuis": "1997-09-24",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
-      "point_value_mesuree": 1.4141,
-      "spread_points_instantane": 15,
+      "point_value_mesuree": 1.4009,
+      "spread_points_instantane": 11,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "AVAXUSDT": {
-      "atr_pct_h4": 2.6057301535355784,
-      "atr_pct_h4_recent": 2.552142064426235,
+      "atr_pct_h4": 2.602319561579076,
+      "atr_pct_h4_recent": 2.55428717785679,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "BNBUSDT": {
-      "atr_pct_h4": 1.4761407620296216,
-      "atr_pct_h4_recent": 1.2064036723806468,
+      "atr_pct_h4": 1.472523240271474,
+      "atr_pct_h4_recent": 1.1388198546577288,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "BTCUSDT": {
-      "atr_pct_h4": 1.2826705843065422,
-      "atr_pct_h4_recent": 0.9783395714468565,
+      "atr_pct_h4": 1.2809592927668136,
+      "atr_pct_h4_recent": 0.9840311237146078,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "DE40": {
-      "atr_pct_h4": 0.5655181139428729,
+      "atr_pct_h4": 0.5644056414556416,
       "digits": 2,
-      "h1_barres": 32563,
+      "h1_barres": 32663,
       "h1_depuis": "2011-09-29",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.015899999999999997,
+      "point_value_mesuree": 0.0157,
       "spread_points_instantane": 320,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "DOGEUSDT": {
-      "atr_pct_h4": 2.4878218201073694,
-      "atr_pct_h4_recent": 2.001359547414489,
+      "atr_pct_h4": 2.4834304174328232,
+      "atr_pct_h4_recent": 1.9512535791484948,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "DOTUSDT": {
-      "atr_pct_h4": 2.4126150725377373,
-      "atr_pct_h4_recent": 3.1273757212119695,
+      "atr_pct_h4": 2.4204927163131664,
+      "atr_pct_h4_recent": 3.1303086092527868,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "ETHUSDT": {
-      "atr_pct_h4": 1.8103455113459355,
-      "atr_pct_h4_recent": 1.3363176596458017,
+      "atr_pct_h4": 1.8100083418791488,
+      "atr_pct_h4_recent": 1.4356041803994057,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "EURGBP": {
-      "atr_pct_h4": 0.26159178099846747,
+      "atr_pct_h4": 0.2610160022967766,
       "digits": 5,
-      "h1_barres": 49555,
+      "h1_barres": 49694,
       "h1_depuis": "1997-09-30",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
-      "point_value_mesuree": 1.885,
-      "spread_points_instantane": 67,
+      "point_value_mesuree": 1.874,
+      "spread_points_instantane": 50,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "EURJPY": {
-      "atr_pct_h4": 0.3390876533206355,
+      "atr_pct_h4": 0.33847113565328374,
       "digits": 3,
-      "h1_barres": 47749,
+      "h1_barres": 47869,
       "h1_depuis": "2004-09-16",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.001,
-      "point_value_mesuree": 0.8951,
-      "spread_points_instantane": 65,
+      "point_value_mesuree": 0.8931999999999999,
+      "spread_points_instantane": 76,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "EURUSD": {
-      "atr_pct_h4": 0.31405528142532557,
+      "atr_pct_h4": 0.31350502701792254,
       "digits": 5,
-      "h1_barres": 49582,
+      "h1_barres": 49702,
       "h1_depuis": "1997-10-10",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
-      "point_value_mesuree": 1.4141,
-      "spread_points_instantane": 9,
+      "point_value_mesuree": 1.4009,
+      "spread_points_instantane": 15,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "FRA40": {
-      "atr_pct_h4": 0.6817959843302279,
+      "atr_pct_h4": 0.6812548197867889,
       "digits": 2,
-      "h1_barres": 33097,
+      "h1_barres": 33167,
       "h1_depuis": "2012-08-06",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.015899999999999997,
-      "spread_points_instantane": 170,
+      "point_value_mesuree": 0.0157,
+      "spread_points_instantane": 120,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "GBPJPY": {
-      "atr_pct_h4": 0.41054572600549444,
+      "atr_pct_h4": 0.4101567025005898,
       "digits": 3,
-      "h1_barres": 49523,
+      "h1_barres": 49643,
       "h1_depuis": "1997-07-17",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.001,
-      "point_value_mesuree": 0.8951,
-      "spread_points_instantane": 97,
+      "point_value_mesuree": 0.8931999999999999,
+      "spread_points_instantane": 106,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "GBPUSD": {
-      "atr_pct_h4": 0.3533136283642677,
+      "atr_pct_h4": 0.3524226764147147,
       "digits": 5,
-      "h1_barres": 49568,
+      "h1_barres": 49688,
       "h1_depuis": "1997-10-07",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
-      "point_value_mesuree": 1.4141,
+      "point_value_mesuree": 1.4009,
       "spread_points_instantane": 19,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "GOOGL": {
-      "atr_pct_h4": 1.6307864616623888,
+      "atr_pct_h4": 1.6317325645100271,
       "digits": 2,
-      "h1_barres": 9601,
+      "h1_barres": 9636,
       "h1_depuis": "2021-04-15",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 36,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 15,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "JP225": {
-      "atr_pct_h4": 0.7010478121646202,
+      "atr_pct_h4": 0.7017684812933738,
       "digits": 2,
-      "h1_barres": 42906,
+      "h1_barres": 43021,
       "h1_depuis": "1998-09-06",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
       "point_value_mesuree": 0.0009,
       "spread_points_instantane": 600,
@@ -263,448 +263,448 @@
       "volume_step": 0.01
     },
     "LINKUSDT": {
-      "atr_pct_h4": 2.4769251090145605,
-      "atr_pct_h4_recent": 2.2759989497263,
+      "atr_pct_h4": 2.4710506678103403,
+      "atr_pct_h4_recent": 2.1368403539413743,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "LTCUSDT": {
-      "atr_pct_h4": 1.9274522907026637,
-      "atr_pct_h4_recent": 1.993329573668992,
+      "atr_pct_h4": 1.9266274285345886,
+      "atr_pct_h4_recent": 1.9380548512154743,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "META": {
-      "atr_pct_h4": 1.9633281573015626,
+      "atr_pct_h4": 1.965686592478626,
       "digits": 2,
-      "h1_barres": 9913,
+      "h1_barres": 9948,
       "h1_depuis": "2021-02-25",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 68,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 44,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "MSFT": {
-      "atr_pct_h4": 1.3708262360424552,
+      "atr_pct_h4": 1.3703295880401787,
       "digits": 2,
-      "h1_barres": 9964,
+      "h1_barres": 9999,
       "h1_depuis": "2021-02-19",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 71,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 43,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "NATGAS": {
-      "atr_pct_h4": 2.282030019340267,
+      "atr_pct_h4": 2.2790864186007282,
       "digits": 4,
-      "h1_barres": 35223,
+      "h1_barres": 35338,
       "h1_depuis": "2009-11-11",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.0001,
-      "point_value_mesuree": 1.4141,
+      "point_value_mesuree": 1.4009,
       "spread_points_instantane": 70,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "NFLX": {
-      "atr_pct_h4": 1.8632341501112648,
+      "atr_pct_h4": 1.86326518757479,
       "digits": 2,
-      "h1_barres": 9903,
+      "h1_barres": 9938,
       "h1_depuis": "2021-03-03",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 8,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 9,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "NVDA": {
-      "atr_pct_h4": 3.4617735191871293,
+      "atr_pct_h4": 3.459785456306953,
       "digits": 2,
-      "h1_barres": 13918,
+      "h1_barres": 13953,
       "h1_depuis": "1999-01-25",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 8,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 9,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "NZDUSD": {
-      "atr_pct_h4": 0.3944474608967117,
+      "atr_pct_h4": 0.3941799778727113,
       "digits": 5,
-      "h1_barres": 45998,
+      "h1_barres": 46118,
       "h1_depuis": "2010-07-02",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
-      "point_value_mesuree": 1.4141,
+      "point_value_mesuree": 1.4009,
       "spread_points_instantane": 26,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "SOLUSDT": {
-      "atr_pct_h4": 2.4037204374672734,
-      "atr_pct_h4_recent": 1.77536509743406,
+      "atr_pct_h4": 2.3961772025803896,
+      "atr_pct_h4_recent": 1.7703603038083204,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     },
     "TSLA": {
-      "atr_pct_h4": 2.942768411054365,
+      "atr_pct_h4": 2.940274632543023,
       "digits": 2,
-      "h1_barres": 9850,
+      "h1_barres": 9885,
       "h1_depuis": "2021-03-08",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
-      "spread_points_instantane": 25,
+      "point_value_mesuree": 0.013999999999999999,
+      "spread_points_instantane": 83,
       "volume_min": 0.1,
       "volume_step": 0.1
     },
     "UK100": {
-      "atr_pct_h4": 0.496376081993207,
+      "atr_pct_h4": 0.4958347174655152,
       "digits": 2,
-      "h1_barres": 39362,
+      "h1_barres": 39462,
       "h1_depuis": "2011-09-28",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.018799999999999997,
+      "point_value_mesuree": 0.0187,
       "spread_points_instantane": 130,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "US30": {
-      "atr_pct_h4": 0.49117399391994154,
+      "atr_pct_h4": 0.49069885849107336,
       "digits": 2,
-      "h1_barres": 44124,
+      "h1_barres": 44239,
       "h1_depuis": "2011-08-08",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
+      "point_value_mesuree": 0.013999999999999999,
       "spread_points_instantane": 280,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "US500": {
-      "atr_pct_h4": 0.5338782670529822,
+      "atr_pct_h4": 0.533125216291413,
       "digits": 2,
-      "h1_barres": 44125,
+      "h1_barres": 44240,
       "h1_depuis": "2011-08-05",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
+      "point_value_mesuree": 0.013999999999999999,
       "spread_points_instantane": 36,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "USDCAD": {
-      "atr_pct_h4": 0.2377965651495514,
+      "atr_pct_h4": 0.2375519485860559,
       "digits": 5,
-      "h1_barres": 45999,
+      "h1_barres": 46119,
       "h1_depuis": "2010-07-02",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 1e-05,
       "point_value_mesuree": 1.0,
-      "spread_points_instantane": 30,
-      "volume_min": 0.01,
-      "volume_step": 0.01
-    },
-    "USDCHF": {
-      "atr_pct_h4": 0.2818985839164004,
-      "digits": 5,
-      "h1_barres": 45995,
-      "h1_depuis": "2010-07-02",
-      "h1_jusqua": "2026-10-16",
-      "point": 1e-05,
-      "point_value_mesuree": 1.716,
       "spread_points_instantane": 29,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
-    "USDJPY": {
-      "atr_pct_h4": 0.3194115211276611,
-      "digits": 3,
-      "h1_barres": 46000,
+    "USDCHF": {
+      "atr_pct_h4": 0.2818631443870549,
+      "digits": 5,
+      "h1_barres": 46115,
       "h1_depuis": "2010-07-02",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
+      "point": 1e-05,
+      "point_value_mesuree": 1.6985,
+      "spread_points_instantane": 31,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "USDJPY": {
+      "atr_pct_h4": 0.3185453525684624,
+      "digits": 3,
+      "h1_barres": 46120,
+      "h1_depuis": "2010-07-02",
+      "h1_jusqua": "2026-10-23",
       "point": 0.001,
-      "point_value_mesuree": 0.8951,
+      "point_value_mesuree": 0.8931999999999999,
       "spread_points_instantane": 19,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "USTEC": {
-      "atr_pct_h4": 0.7322009314927214,
+      "atr_pct_h4": 0.7330849423436964,
       "digits": 2,
-      "h1_barres": 44129,
+      "h1_barres": 44244,
       "h1_depuis": "2011-05-25",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.01,
-      "point_value_mesuree": 0.0141,
+      "point_value_mesuree": 0.013999999999999999,
       "spread_points_instantane": 80,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
     "WTI": {
-      "atr_pct_h4": 1.3794189103475363,
+      "atr_pct_h4": 1.381609861961226,
       "digits": 3,
-      "h1_barres": 35219,
+      "h1_barres": 35334,
       "h1_depuis": "2010-07-07",
-      "h1_jusqua": "2026-10-16",
+      "h1_jusqua": "2026-10-23",
       "point": 0.001,
-      "point_value_mesuree": 1.4141,
+      "point_value_mesuree": 1.4009,
+      "spread_points_instantane": 20,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "XAGUSD": {
+      "atr_pct_h4": 1.1536471931716343,
+      "digits": 3,
+      "h1_barres": 44316,
+      "h1_depuis": "2010-06-15",
+      "h1_jusqua": "2026-10-23",
+      "point": 0.001,
+      "point_value_mesuree": 7.0044,
+      "spread_points_instantane": 43,
+      "volume_min": 0.01,
+      "volume_step": 0.01
+    },
+    "XAUUSD": {
+      "atr_pct_h4": 0.5781821662307214,
+      "digits": 2,
+      "h1_barres": 44268,
+      "h1_depuis": "2010-06-15",
+      "h1_jusqua": "2026-10-23",
+      "point": 0.01,
+      "point_value_mesuree": 1.4009,
       "spread_points_instantane": 30,
       "volume_min": 0.01,
       "volume_step": 0.01
     },
-    "XAGUSD": {
-      "atr_pct_h4": 1.153100913633293,
-      "digits": 3,
-      "h1_barres": 44201,
-      "h1_depuis": "2010-06-15",
-      "h1_jusqua": "2026-10-16",
-      "point": 0.001,
-      "point_value_mesuree": 7.070499999999999,
-      "spread_points_instantane": 45,
-      "volume_min": 0.01,
-      "volume_step": 0.01
-    },
-    "XAUUSD": {
-      "atr_pct_h4": 0.5774324922506876,
-      "digits": 2,
-      "h1_barres": 44153,
-      "h1_depuis": "2010-06-15",
-      "h1_jusqua": "2026-10-16",
-      "point": 0.01,
-      "point_value_mesuree": 1.4141,
-      "spread_points_instantane": 29,
-      "volume_min": 0.01,
-      "volume_step": 0.01
-    },
     "XRPUSDT": {
-      "atr_pct_h4": 1.9467119942153432,
-      "atr_pct_h4_recent": 1.920145453571334,
+      "atr_pct_h4": 1.9457009632064184,
+      "atr_pct_h4_recent": 1.8577151385755788,
       "h1_barres": 26280,
-      "h1_depuis": "2023-10-18",
-      "h1_jusqua": "2026-10-17"
+      "h1_depuis": "2023-10-25",
+      "h1_jusqua": "2026-10-24"
     }
   },
   "spreads": {
     "AAPL": {
-      "med": 0.047933,
-      "n": 5443,
-      "p90": 0.078186
+      "med": 0.048745,
+      "n": 6218,
+      "p90": 0.097789
     },
     "ADAUSDT": {
-      "med": 0.044494,
-      "n": 5443,
-      "p90": 0.050038
+      "med": 0.044893,
+      "n": 6218,
+      "p90": 0.049764
     },
     "AMZN": {
-      "med": 0.060036,
-      "n": 5443,
+      "med": 0.07058,
+      "n": 6218,
       "p90": 0.130075
     },
     "ATOMUSDT": {
-      "med": 0.058668,
-      "n": 5443,
-      "p90": 0.067545
+      "med": 0.058428,
+      "n": 6218,
+      "p90": 0.067317
     },
     "AUDJPY": {
-      "med": 0.025328,
-      "n": 5443,
-      "p90": 0.076081
+      "med": 0.02533,
+      "n": 6218,
+      "p90": 0.073236
     },
     "AUDUSD": {
-      "med": 0.02082,
-      "n": 5443,
-      "p90": 0.021557
+      "med": 0.020774,
+      "n": 6218,
+      "p90": 0.021562
     },
     "AVAXUSDT": {
-      "med": 0.010295,
-      "n": 5443,
-      "p90": 0.013709
+      "med": 0.01045,
+      "n": 6218,
+      "p90": 0.013671
     },
     "BNBUSDT": {
-      "med": 0.001341,
-      "n": 5443,
-      "p90": 0.001442
+      "med": 0.001349,
+      "n": 6218,
+      "p90": 0.001437
     },
     "BTCUSDT": {
       "med": 1.2e-05,
-      "n": 5443,
+      "n": 6218,
       "p90": 1.3e-05
     },
     "DE40": {
       "med": 0.012521,
-      "n": 5443,
+      "n": 6218,
       "p90": 0.012717
     },
     "DOGEUSDT": {
-      "med": 0.011462,
-      "n": 5443,
-      "p90": 0.012251
+      "med": 0.011672,
+      "n": 6218,
+      "p90": 0.012493
     },
     "DOTUSDT": {
       "med": 0.088928,
-      "n": 5443,
-      "p90": 0.115407
+      "n": 6218,
+      "p90": 0.115009
     },
     "ETHUSDT": {
-      "med": 0.000398,
-      "n": 5443,
-      "p90": 0.000413
+      "med": 0.000399,
+      "n": 6218,
+      "p90": 0.000415
     },
     "EURGBP": {
       "med": 0.024439,
-      "n": 5443,
-      "p90": 0.063974
+      "n": 6218,
+      "p90": 0.069959
     },
     "EURJPY": {
       "med": 0.013776,
-      "n": 5443,
-      "p90": 0.078001
+      "n": 6218,
+      "p90": 0.07591
     },
     "EURUSD": {
-      "med": 0.007998,
-      "n": 5443,
-      "p90": 0.013179
+      "med": 0.00801,
+      "n": 6218,
+      "p90": 0.013322
     },
     "FRA40": {
       "med": 0.014676,
-      "n": 5443,
-      "p90": 0.015606
+      "n": 6218,
+      "p90": 0.02152
     },
     "GBPJPY": {
       "med": 0.020831,
-      "n": 5443,
-      "p90": 0.052296
+      "n": 6218,
+      "p90": 0.050512
     },
     "GBPUSD": {
-      "med": 0.014032,
-      "n": 5443,
-      "p90": 0.014357
+      "med": 0.014036,
+      "n": 6218,
+      "p90": 0.014355
     },
     "GOOGL": {
       "med": 0.075566,
-      "n": 5443,
-      "p90": 0.120832
+      "n": 6218,
+      "p90": 0.119027
     },
     "JP225": {
-      "med": 0.009117,
-      "n": 5443,
-      "p90": 0.009339
+      "med": 0.00912,
+      "n": 6218,
+      "p90": 0.009454
     },
     "LINKUSDT": {
-      "med": 0.008025,
-      "n": 5443,
-      "p90": 0.008859
+      "med": 0.008107,
+      "n": 6218,
+      "p90": 0.008809
     },
     "LTCUSDT": {
-      "med": 0.017258,
-      "n": 5443,
-      "p90": 0.020184
+      "med": 0.016959,
+      "n": 6218,
+      "p90": 0.020119
     },
     "META": {
       "med": 0.113231,
-      "n": 5443,
-      "p90": 0.1941
+      "n": 6218,
+      "p90": 0.216193
     },
     "MSFT": {
       "med": 0.118961,
-      "n": 5443,
-      "p90": 0.166873
+      "n": 6218,
+      "p90": 0.154699
     },
     "NATGAS": {
-      "med": 0.241796,
-      "n": 5443,
-      "p90": 0.275672
+      "med": 0.24188,
+      "n": 6218,
+      "p90": 0.276912
     },
     "NFLX": {
-      "med": 0.113347,
-      "n": 5443,
+      "med": 0.115457,
+      "n": 6218,
       "p90": 0.147319
     },
     "NVDA": {
       "med": 0.039977,
-      "n": 5443,
-      "p90": 0.049655
+      "n": 6218,
+      "p90": 0.055221
     },
     "NZDUSD": {
       "med": 0.020405,
-      "n": 5443,
+      "n": 6218,
       "p90": 0.046297
     },
     "SOLUSDT": {
-      "med": 0.009261,
-      "n": 5443,
-      "p90": 0.009964
+      "med": 0.009459,
+      "n": 6218,
+      "p90": 0.009889
     },
     "TSLA": {
-      "med": 0.097471,
-      "n": 5443,
-      "p90": 0.146835
+      "med": 0.100256,
+      "n": 6218,
+      "p90": 0.190021
     },
     "UK100": {
-      "med": 0.01216,
-      "n": 5443,
-      "p90": 0.01484
+      "med": 0.012143,
+      "n": 6218,
+      "p90": 0.014716
     },
     "US30": {
       "med": 0.005332,
-      "n": 5443,
-      "p90": 0.005458
+      "n": 6218,
+      "p90": 0.005454
     },
     "US500": {
       "med": 0.004663,
-      "n": 5443,
-      "p90": 0.004709
+      "n": 6218,
+      "p90": 0.00471
     },
     "USDCAD": {
       "med": 0.015176,
-      "n": 5443,
+      "n": 6218,
       "p90": 0.021215
     },
     "USDCHF": {
       "med": 0.034863,
-      "n": 5443,
-      "p90": 0.035826
+      "n": 6218,
+      "p90": 0.035943
     },
     "USDJPY": {
       "med": 0.011867,
-      "n": 5443,
-      "p90": 0.01218
+      "n": 6218,
+      "p90": 0.012161
     },
     "USTEC": {
-      "med": 0.002697,
-      "n": 5443,
-      "p90": 0.002744
+      "med": 0.002702,
+      "n": 6218,
+      "p90": 0.002749
     },
     "WTI": {
-      "med": 0.03106,
-      "n": 5443,
-      "p90": 0.034524
+      "med": 0.030792,
+      "n": 6218,
+      "p90": 0.03312
     },
     "XAGUSD": {
       "med": 0.058852,
-      "n": 5443,
-      "p90": 0.069952
+      "n": 6218,
+      "p90": 0.070668
     },
     "XAUUSD": {
       "med": 0.006509,
-      "n": 5443,
+      "n": 6218,
       "p90": 0.007004
     },
     "XRPUSDT": {
-      "med": 0.007106,
-      "n": 5443,
-      "p90": 0.007492
+      "med": 0.007143,
+      "n": 6218,
+      "p90": 0.007668
     }
   },
   "stop_atr": 1.5
